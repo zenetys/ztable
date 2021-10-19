@@ -1,0 +1,80 @@
+{
+  "name": "@zenetys/ztable",
+  "version": "0.1.25",
+  "author": "Jules KLU",
+  "email" : "jklu@zenetys.com",
+  "url": "https://tools.zenetys.com/ztable/",
+  "description": "Vuetify based panel to represent any data array of objects",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zenetys/ztable.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "lib": "vue-cli-service build --target lib --inline-vue --name z-table ./src/index.js"
+  },
+  "main": "dist/z-table.common.js",
+  "module": "dist/z-table.esm.js",
+  "unpkg": "dist/z-table.min.js",
+  "files": [
+    "dist/*",
+    "src/*",
+    "public/*",
+    "*.json",
+    "*.js"
+  ],
+  "dependencies": {
+    "@elastic/elasticsearch": "^7.9.1",
+    "@mdi/font": "^5.9.55",
+    "axios": "^0.20.0",
+    "chart.js": "^2.9.3",
+    "core-js": "^3.6.5",
+    "fs": "0.0.1-security",
+    "fs-extra": "^9.0.1",
+    "material-design-icons": "^3.0.1",
+    "node": "^14.13.1",
+    "sortablejs": "^1.12.0",
+    "split2": "^3.2.2",
+    "vue": "^2.6.14",
+    "vue-chartjs": "^3.5.1",
+    "vue-i18n": "^8.22.1",
+    "vue-router": "^3.2.0",
+    "vue-session": "^1.0.0",
+    "vuetify": "^2.5.8",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-router": "^4.5.6",
+    "@vue/cli-service": "~4.5.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "sass": "~1.32.6",
+    "sass-loader": "^8.0.0",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
