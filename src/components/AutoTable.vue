@@ -15,29 +15,29 @@
             mobile-breakpoint="0"
             :disable-pagination="!this.isPaginated"
             :hide-default-footer="!this.isPaginated"
-        >
+            >
 
-        <template v-slot:body="{ items, headers }">
-            <tbody>
-                <template v-for="(item, index) in items">
-                    <tr :key="index" :class="typeof itemClass=='function' ? itemClass(item) : itemClass">
-                        <template v-for="(headerItem, headerIndex) in headers">
-                            <td :key="headerIndex" :title="headerItem.cdef.tdTooltip(item[headerItem.value], item)" :class="headerItem.cdef.tdClass(item[headerItem.value], item) + ' v-data-table__divider col_' + headerItem.value">
-                                <template v-if="headerItem.cdef.html">
-                                    <span :key="headerItem.id" :title="headerItem.cdef.tooltip(item[headerItem.value], item)" :style="headerItem.cdef.style(item[headerItem.value], item)" v-html="headerItem.cdef.format(item[headerItem.value], item)"></span>
-                                </template>
-                                <template v-else>
-                                    <span :key="headerItem.id" :title="headerItem.cdef.tooltip(item[headerItem.value], item)" :style="headerItem.cdef.style(item[headerItem.value], item)">{{headerItem.cdef.format(item[headerItem.value], item)}}</span>
-                                </template>
-                                <span v-if="activeCopyCellContent && headerItem.cdef.format(item[headerItem.value], item)" class="cp-span mdi mdi-content-copy" @click="copyCellContent('col_'+headerItem.value, index, $event)">
-                                    <span class="cell-copied-tooltip">Copied!</span>
-                                </span>
-                            </td>
-                        </template>
-                    </tr>
-                </template>
-            </tbody>
-        </template>
+            <template v-slot:body="{ items, headers }">
+                <tbody>
+                    <template v-for="(item, index) in items">
+                        <tr :key="index" :class="typeof itemClass=='function' ? itemClass(item) : itemClass">
+                            <template v-for="(headerItem, headerIndex) in headers">
+                                <td :key="headerIndex" :title="headerItem.cdef.tdTooltip(item[headerItem.value], item)" :class="headerItem.cdef.tdClass(item[headerItem.value], item) + ' v-data-table__divider col_' + headerItem.value">
+                                    <template v-if="headerItem.cdef.html">
+                                        <span :key="headerItem.id" :title="headerItem.cdef.tooltip(item[headerItem.value], item)" :style="headerItem.cdef.style(item[headerItem.value], item)" v-html="headerItem.cdef.format(item[headerItem.value], item)"></span>
+                                    </template>
+                                    <template v-else>
+                                        <span :key="headerItem.id" :title="headerItem.cdef.tooltip(item[headerItem.value], item)" :style="headerItem.cdef.style(item[headerItem.value], item)">{{headerItem.cdef.format(item[headerItem.value], item)}}</span>
+                                    </template>
+                                    <span v-if="activeCopyCellContent && headerItem.cdef.format(item[headerItem.value], item)" class="cp-span mdi mdi-content-copy" @click="copyCellContent('col_'+headerItem.value, index, $event)">
+                                        <span class="cell-copied-tooltip">Copied!</span>
+                                    </span>
+                                </td>
+                            </template>
+                        </tr>
+                    </template>
+                </tbody>
+            </template>
 
         </v-data-table>
 
@@ -46,7 +46,7 @@
                 indeterminate
                 size="64"
                 color="#a2a2a2"
-            ></v-progress-circular>
+                ></v-progress-circular>
         </v-overlay>
 
     </v-card>
@@ -232,31 +232,31 @@ export default {
                 method: 'get',
                 url: this.$props.api,
             })
-            .then( (response) => {
-                const path = this.$props.arrayData.split(".");
-                let pointer = response.data;
+                .then( (response) => {
+                    const path = this.$props.arrayData.split(".");
+                    let pointer = response.data;
 
-                if (path != "") {
-                    for (let i = 0; i < path.length; i++) {
-                        if (pointer[path[i]]) {
-                            pointer = pointer[path[i]];
-                        } else {
-                            pointer = null;
-                            break;
+                    if (path != "") {
+                        for (let i = 0; i < path.length; i++) {
+                            if (pointer[path[i]]) {
+                                pointer = pointer[path[i]];
+                            } else {
+                                pointer = null;
+                                break;
+                            }
+                        }
+                        if (pointer==null) {
+                            this.$emit('error', 'Error occurs in data path.');
                         }
                     }
-                    if (pointer==null) {
-                        this.$emit('error', 'Error occurs in data path.');
-                    }
-                }
-                this.tableItems = pointer;
-                this.loading = false;
-                this.$emit('error', {});
-            }).catch( (error) => {
-                this.tableItems = [];
-                console.log('data from autoTable error', error);
-                this.$emit('error', { type: 'error', content: 'Cannot load data, problem with the query.', error: error });
-            });
+                    this.tableItems = pointer;
+                    this.loading = false;
+                    this.$emit('error', {});
+                }).catch( (error) => {
+                    this.tableItems = [];
+                    console.log('data from autoTable error', error);
+                    this.$emit('error', { type: 'error', content: 'Cannot load data, problem with the query.', error: error });
+                });
         },
         setTableHeight() {
             if (this.$props.height == 'auto')
