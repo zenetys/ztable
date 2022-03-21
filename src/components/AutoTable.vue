@@ -114,7 +114,7 @@ tbody .v-data-table__divider span {
 <script>
 import { VDataTable } from 'vuetify/lib';
 import axios from 'axios';
-import { copyToClipboard } from "@/plugins/misc";
+import { copyToClipboard } from "@/plugins/utils";
 
 const default_column_definition = {
     format: (v) => v,
