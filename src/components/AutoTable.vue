@@ -291,8 +291,10 @@ export default {
             return header.columnDefinition.getClass(tableItem) + ' v-data-table__divider col_' + header.value;
         },
         setTableHeight() {
-            if (this.$props.height === 'auto') this.tableHeight = this.computeAutoTableHeight();
-            else if (this.$props.height) this.tableHeight = this.$props.height;
+            if (this.$props.height === 'auto')
+                this.tableHeight = this.computeAutoTableHeight();
+            else if (this.$props.height)
+                this.tableHeight = this.$props.height;
         },
         computeAutoTableHeight() {
             let tableHeight = 0;
