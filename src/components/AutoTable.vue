@@ -40,7 +40,7 @@
                             <span
                                 v-if="activeCopyCellContent && header.columnDefinition.format(item[header.value], item)"
                                 class="cp-span mdi mdi-content-copy"
-                                @click="copyCellContent('col_' + header.value, itemIndex, $event)"
+                                @click="copyCellContent(id, headerIndex, itemIndex, $event)"
                             >
                                 <span class="cell-copied-tooltip">Copied!</span>
                             </span>
@@ -331,13 +331,18 @@ export default {
         },
         /**
          * Copy cell content to clipboard
-         * @param {string} value - Cell class name
-         * @param {number} index - item index
+         * @param {string} rootId - DOM id of the auto-table instance
+         * @param {number} colIndex - Column index starting from 0
+         * @param {number} rowIndex - Row index starting from 0
          */
-        copyCellContent(value, index) {
-            const elCopy = document.getElementsByClassName(`${value}`)[index].innerText;
-            copyToClipboard(elCopy).then(() => {
-                const tooltipElement = document.querySelector('.cp-span:hover .cell-copied-tooltip');
+        copyCellContent(rootId, colIndex, rowIndex) {
+            const selector = `#${rootId} tbody > tr:nth-child(${rowIndex+1}) > td:nth-child(${colIndex+1})`;
+            const elementToCopy = document.querySelector(selector);
+            if (!elementToCopy || elementToCopy.innerText === undefined)
+                return; /* not found */
+
+            copyToClipboard(elementToCopy.innerText).then(() => {
+                const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
                 if (tooltipElement) {
                     tooltipElement.style = 'visibility:visible;';
                     setTimeout(() => {
