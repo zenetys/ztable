@@ -116,7 +116,6 @@ tbody .v-data-table__divider span {
 
 <script>
 import { VDataTable } from 'vuetify/lib';
-import { copyToClipboard, unArray } from '@/plugins/utils';
 
 const defaultColumnDefinition = {
     format: (v) => v,
@@ -255,7 +254,7 @@ export default {
                     const path = this.$props.arrayData.split('.');
                     let tableData = response.data;
 
-                    if (unArray(path) !== '') {
+                    if (this.$utils.unArray(path) !== '') {
                         for (let i = 0; i < path.length; i++) {
                             if (tableData[path[i]]) {
                                 tableData = tableData[path[i]];
@@ -340,7 +339,7 @@ export default {
                 return; /* not found */
             }
 
-            copyToClipboard(elementToCopy.innerText).then(() => {
+            this.$utils.copyToClipboard(elementToCopy.innerText).then(() => {
                 const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
                 if (tooltipElement) {
                     tooltipElement.style = 'visibility:visible;';
