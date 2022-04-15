@@ -184,7 +184,7 @@ export default {
             const headers = [];
 
             // Store every unique header key
-            this.tableItems.forEach((item) => {
+            this.tableItems?.forEach((item) => {
                 Object.keys(item).forEach((key) => {
                     if (!headers.some((header) => header.value === key)) {
                         headers.push({ value: key });
@@ -219,7 +219,7 @@ export default {
             return headers;
         },
         formattedTableItems() {
-            return this.tableItems.map((item, index) => ({
+            return this.tableItems?.map((item, index) => ({
                 id: index,
                 ...item,
             }));
@@ -245,10 +245,10 @@ export default {
         /**
          * Fetch the data to display in a table from the API
          */
-        fetchTableItems() {
+        async fetchTableItems() {
             this.isLoading = true;
 
-            this.$api
+            await this.$api
                 .get(this.$props.api)
                 .then((response) => {
                     const path = this.$props.arrayData.split('.');
@@ -263,7 +263,7 @@ export default {
                                 break;
                             }
                         }
-                        if (tableData === null) {
+                        if (tableData === []) {
                             this.$emit('error', 'Error occurs in data path.');
                         }
                     }
