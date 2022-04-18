@@ -14,8 +14,7 @@
             disable-sort
             mobile-breakpoint="0"
             :disable-pagination="!this.isPaginated"
-            :hide-default-footer="!this.isPaginated"
-        >
+            :hide-default-footer="!this.isPaginated">
             <template v-slot:body="{ items, headers }">
                 <tbody>
                     <tr v-for="(item, itemIndex) in items" :key="itemIndex" :class="getRowClass(item)">
@@ -23,14 +22,12 @@
                             v-for="(header, headerIndex) in headers"
                             :key="headerIndex"
                             :title="header.columnDefinition.getTitle(item)"
-                            :class="getHeaderClassForItem(header, item)"
-                        >
+                            :class="getHeaderClassForItem(header, item)">
                             <span
                                 v-if="header.columnDefinition.isHtml"
                                 :title="header.columnDefinition.getTooltip(item[header.value], item)"
                                 :style="header.columnDefinition.getStyle(item[header.value], item)"
-                                v-html="header.columnDefinition.format(item[header.value], item)"
-                            ></span>
+                                v-html="header.columnDefinition.format(item[header.value], item)"></span>
                             <span
                                 v-else
                                 :title="header.columnDefinition.getTooltip(item[header.value], item)"
@@ -40,8 +37,7 @@
                             <span
                                 v-if="activeCopyCellContent && header.columnDefinition.format(item[header.value], item)"
                                 class="cp-span mdi mdi-content-copy"
-                                @click="copyCellContent(id, headerIndex, itemIndex, $event)"
-                            >
+                                @click="copyCellContent(id, headerIndex, itemIndex, $event)">
                                 <span class="cell-copied-tooltip">Copied!</span>
                             </span>
                         </td>
@@ -291,10 +287,11 @@ export default {
             return header.columnDefinition.getClass(tableItem) + ' v-data-table__divider col_' + header.value;
         },
         setTableHeight() {
-            if (this.$props.height === 'auto')
+            if (this.$props.height === 'auto') {
                 this.tableHeight = this.computeAutoTableHeight();
-            else if (this.$props.height)
+            } else if (this.$props.height) {
                 this.tableHeight = this.$props.height;
+            }
         },
         computeAutoTableHeight() {
             let tableHeight = 0;
@@ -336,10 +333,12 @@ export default {
          * @param {number} rowIndex - Row index starting from 0
          */
         copyCellContent(rootId, colIndex, rowIndex) {
-            const selector = `#${rootId} tbody > tr:nth-child(${rowIndex+1}) > td:nth-child(${colIndex+1})`;
+            const selector = `#${rootId} tbody > tr:nth-child(${rowIndex + 1}) > td:nth-child(${colIndex + 1})`;
             const elementToCopy = document.querySelector(selector);
-            if (!elementToCopy || elementToCopy.innerText === undefined)
+
+            if (!elementToCopy || elementToCopy.innerText === undefined) {
                 return; /* not found */
+            }
 
             copyToClipboard(elementToCopy.innerText).then(() => {
                 const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
