@@ -4,6 +4,7 @@
             :id="id"
             :headers="headers"
             :items="formattedTableItems"
+            :search="search"
             class="auto-table elevation-0"
             :item-class="itemClass"
             dense
@@ -195,6 +196,10 @@ export default {
         arrayData: {
             type: String,
             default: '',
+        },
+        search: {
+            type: String,
+            default: undefined,
         },
         columnDefinition: {
             type: Object,
