@@ -180,6 +180,7 @@ const defaultColumnDefinition = {
     hidden: false,
     getClass: () => '',
     getTitle: () => '',
+    order: 999,
 };
 
 export default {
@@ -276,6 +277,7 @@ export default {
                 header.columnDefinition = columnDefinition;
             }
 
+            headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
             return headers;
         },
         formattedTableItems() {
