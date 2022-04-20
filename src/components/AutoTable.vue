@@ -206,6 +206,10 @@ export default {
             type: Object,
             default: () => ({}),
         },
+        onDataReadySync: {
+            type: Array, /* of Function */
+            default: () => [],
+        },
         isPaginated: {
             type: Boolean,
             default: false,
@@ -323,6 +327,8 @@ export default {
                 if (!Array.isArray(data))
                     throw Error('Data is not an array');
 
+                for (let cb of this.$props.onDataReadySync)
+                    cb(data);
                 this.tableItems = data;
             }
 
