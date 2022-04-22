@@ -191,7 +191,7 @@ export default {
             default: 'auto-table',
         },
         api: {
-            type: String,
+            type: [String, Promise],
             required: true,
         },
         arrayData: {
@@ -336,7 +336,11 @@ export default {
             }
 
             this.isLoading = true;
-            this.$api.axiosData(this.$props.api)
+            const promise = this.$props.api instanceof Promise
+                ? this.$props.api
+                : this.$api.axiosData(this.$props.api);
+
+            promise
                 .then((data) => {
                     try { setup(data) }
                     catch(e) { this.$ev.$emit('error', e, 'Cannot render table'); }
