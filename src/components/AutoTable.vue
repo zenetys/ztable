@@ -243,41 +243,30 @@ export default {
     },
     methods: {
         /**
+         * @async
          * Fetch the data to display in a table from the API
          */
         async fetchTableItems() {
             this.isLoading = true;
+            const errorContext = 'Could not fetch table items from the server.';
+            const path = this.$props.arrayData.split('.');
+            let tableData = await this.$api.get(this.$props.api, errorContext);
 
-            await this.$api
-                .get(this.$props.api)
-                .then((response) => {
-                    const path = this.$props.arrayData.split('.');
-                    let tableData = response.data;
-
-                    if (this.$utils.unArray(path) !== '') {
-                        for (let i = 0; i < path.length; i++) {
-                            if (tableData[path[i]]) {
-                                tableData = tableData[path[i]];
-                            } else {
-                                tableData = null;
-                                break;
-                            }
-                        }
-                        if (tableData === []) {
-                            this.$emit('error', 'Error occurs in data path.');
-                        }
+            if (this.$utils.unArray(path) !== '') {
+                for (let i = 0; i < path.length; i++) {
+                    if (tableData[path[i]]) {
+                        tableData = tableData[path[i]];
+                    } else {
+                        tableData = null;
+                        break;
                     }
-                    this.tableItems = tableData;
-                    this.isLoading = false;
-                    this.$emit('error', {});
-                })
-                .catch((error) => {
-                    this.$emit('error', {
-                        type: 'error',
-                        content: 'Cannot load data, problem with the query.',
-                        error: error,
-                    });
-                });
+                }
+                if (tableData === []) {
+                    this.$emit('error', 'Error occurs in data path.');
+                }
+            }
+            this.tableItems = tableData;
+            this.isLoading = false;
         },
         getRowClass(item) {
             return typeof this.itemClass === 'function' ? this.itemClass(item) : this.itemClass;
