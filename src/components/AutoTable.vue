@@ -13,8 +13,8 @@
             :footer-props="tableFooterProps"
             disable-sort
             mobile-breakpoint="0"
-            :disable-pagination="!this.isPaginated"
-            :hide-default-footer="!this.isPaginated">
+            :disable-pagination="!isPaginated"
+            :hide-default-footer="!isPaginated">
             <template v-slot:body="{ items, headers }">
                 <tbody>
                     <tr v-for="(item, itemIndex) in items" :key="itemIndex" :class="getRowClass(item)">
