@@ -244,7 +244,7 @@ export default {
     methods: {
         /**
          * @async
-         * Fetch the data to display in a table from the API
+         * Fetch data from an API and format it.
          */
         async fetchTableItems() {
             this.isLoading = true;
@@ -268,12 +268,26 @@ export default {
             this.tableItems = tableData;
             this.isLoading = false;
         },
+        /**
+         * Get a class name depending an the item
+         * @param {*} item - The item to get the class name for
+         * @returns {string} - The class name
+         */
         getRowClass(item) {
             return typeof this.itemClass === 'function' ? this.itemClass(item) : this.itemClass;
         },
+        /**
+         * Get header classes for a provided item
+         * @param {string} header - The header to get classes for
+         * @param {object} tableItem - The related table item
+         * @returns {string} - The header classes
+         */
         getHeaderClassForItem(header, tableItem) {
             return header.columnDefinition.getClass(tableItem) + ' v-data-table__divider col_' + header.value;
         },
+        /**
+         * Set the height of the table
+         */
         setTableHeight() {
             if (this.$props.height === 'auto') {
                 this.tableHeight = this.computeAutoTableHeight();
@@ -281,6 +295,10 @@ export default {
                 this.tableHeight = this.$props.height;
             }
         },
+        /**
+         * Calculate the height of the table
+         * @returns {number} - The height of the table
+         */
         computeAutoTableHeight() {
             let tableHeight = 0;
             const table = document.getElementById(this.id);
