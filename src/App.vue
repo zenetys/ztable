@@ -16,10 +16,10 @@ a:link {
 
 <script>
 import AutoTable from '@/components/AutoTable';
+import { EventBus } from '@/plugins/eventBus';
 
 export default {
     name: 'App',
-
     components: {
         AutoTable,
     },
@@ -29,7 +29,17 @@ export default {
             appName: process.env.VUE_APP_NAME,
         };
     },
-    methods: {},
     mounted() {},
+    methods: {
+        handleError(error) {
+            console.log('Error: ', error);
+        },
+    },
+    created() {
+        EventBus.$on('error', this.handleError);
+    },
+    beforeDestroy() {
+        EventBus.$off('error', this.handleError);
+    },
 };
 </script>
