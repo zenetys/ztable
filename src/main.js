@@ -5,12 +5,12 @@ import vuetify from '@/plugins/vuetify';
 import axios from 'axios';
 import i18n from '@/plugins/i18n';
 import VueSession from 'vue-session';
-import store from '@/plugins/store';
+import Store from '@/plugins/store';
 
 Vue.config.productionTip = false;
 Vue.use(VueSession);
 
-Vue.prototype.$store = store;
+Vue.prototype.$store = Store;
 
 // Global variable for api to call
 // Vue.prototype.$typeApi = 'nagios';

@@ -3,6 +3,19 @@
         <v-main>
             <div class="ml-1 mr-2">
                 <AutoTable v-if="tableData" :headers="headers" :items="tableData" />
+                <ConfigDialog />
+                <v-btn
+                    elevation="2"
+                    color="primary"
+                    fab
+                    absolute
+                    bottom
+                    left
+                    class="__settings-btn"
+                    @click="openConfigDialog"
+                >
+                    <v-icon>mdi-wrench</v-icon>
+                </v-btn>
             </div>
         </v-main>
     </v-app>
@@ -16,6 +29,7 @@ a:link {
 
 <script>
 import AutoTable from '@/components/AutoTable';
+import ConfigDialog from '@/components/ConfigDialog';
 import DataManager from '@/plugins/dataManager';
 import { loadApiSpecificStyle } from '@/plugins/formatManager';
 import { EventBus } from '@/plugins/eventBus';
@@ -24,6 +38,7 @@ export default {
     name: 'App',
     components: {
         AutoTable,
+        ConfigDialog,
     },
     data() {
         return {
@@ -52,30 +67,63 @@ export default {
 
                     if (!this.tableData) {
                         EventBus.$emit('error', 'Error occurs in data path.');
+                        this.$store.showConfigDialog = true;
                     }
                 })
                 .catch((error) => {
                     EventBus.$emit('error', error);
+                    this.openConfigDialog();
                 });
         },
+        /**
+         * Handle any error that occurs
+         * @param {Object} error
+         */
         handleError(error) {
             console.error('ZTable Error: ', error);
         },
+        /**
+         * Handle config data
+         * @param {Object} config
+         */
         handleConfig(config) {
             if (config.dataUrl) {
                 this.fetchDataAndInitTable();
+                this.$store.showConfigDialog = false;
             } else {
-                // prompt values
+                this.closeConfigDialog();
             }
         },
-    },
-    created() {
-        const config = DataManager.setConfigFromRoute(this.$route);
-        this.handleConfig(config);
-        EventBus.$on('error', this.handleError);
+        /**
+         * Open the config form dialog
+         */
+        openConfigDialog() {
+            this.$store.showConfigDialog = true;
+        },
+        /**
+         * Close the config form dialog
+         */
+        closeConfigDialog() {
+            this.$store.showConfigDialog = false;
+        },
     },
     beforeDestroy() {
         EventBus.$off('error', this.handleError);
+    },
+    watch: {
+        $route: {
+            handler(newRoute, oldRoute) {
+                if (
+                    newRoute.query?.source !== oldRoute?.query?.source ||
+                    newRoute.query?.path !== oldRoute?.query?.path ||
+                    newRoute.query?.type !== oldRoute?.query?.type
+                ) {
+                    const config = DataManager.setConfigFromRoute(newRoute);
+                    this.handleConfig(config);
+                }
+            },
+            immediate: true,
+        },
     },
 };
 </script>

@@ -42,7 +42,7 @@
 
             span {
                 position: absolute;
-                top: 1;
+                top: 1px;
                 left: 0;
                 right: 0;
                 bottom: 0;
@@ -53,6 +53,11 @@
             }
         }
     }
+}
+
+.__settings-btn {
+    bottom: 2vh !important;
+    left: 2vw !important;
 }
 </style>
 
