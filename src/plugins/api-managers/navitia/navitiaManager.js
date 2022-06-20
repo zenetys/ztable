@@ -11,6 +11,7 @@ const propertyClasses = {
 // const headerClasses = {};
 
 export default {
+    dataPath: 'data',
     /**
      * Get the classes of a cell from its header and item
      * @param {*} header the header of the column.
@@ -32,10 +33,16 @@ export default {
      * @returns {*} the content to display in the cell.
      */
     getCellContent(header, item) {
+        const cellValue = {
+            isHtml: false,
+            value: null,
+        };
+
         if (header?.value && item && item[header.value] && propertiesCallbacks[header.value]) {
             return propertiesCallbacks[header.value](item);
         } else {
-            return item[header.value] || '';
+            cellValue.value = item[header.value];
+            return cellValue;
         }
     },
 };
@@ -47,7 +54,10 @@ export default {
  */
 function formatDataSourceFile(item) {
     if (item?.data_source_file) {
-        return `<a href="${item.data_source_file}" title="Download file" target="_blank">${item.data_source_file}</a>`;
+        return {
+            isHtml: true,
+            value: `<a href="${item.data_source_file}" title="Download file" target="_blank">${item.data_source_file}</a>`,
+        };
     } else {
         return '';
     }
@@ -59,9 +69,16 @@ function formatDataSourceFile(item) {
  * @returns {string} The formatted geo field
  */
 function formatGeo(item) {
-    if (item?.geo?.value?.length === 2) {
-        return `lat: ${item.geo.value[0]}, long: ${item.geo.value[1]}`;
+    const formattedGeo = {
+        isHtml: false,
+        value: null,
+    };
+
+    if (Array.isArray(item?.geo) && item?.geo?.length === 2) {
+        formattedGeo.value = `lat: ${item.geo[0]}, long: ${item.geo[1]}`;
     } else {
-        return item.geo || '';
+        formattedGeo.value = item.geo.value || '';
     }
+
+    return formattedGeo;
 }

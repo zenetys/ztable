@@ -6,6 +6,13 @@ import StorageConfigManager from '@/plugins/storageConfigManager';
 import NavitiaManager from '@/plugins/api-managers/navitia/navitiaManager';
 
 export default {
+    defaultHeaderConfig: {
+        divider: true,
+        align: 'start',
+        getCellContent,
+        getCellClasses,
+        visible: true,
+    },
     _config: Vue.observable({
         dataUrl: '',
         dataPath: '',
@@ -17,14 +24,8 @@ export default {
     _dataTypes: ['generic', 'navitia'],
     _apiData: null,
     _headers: Vue.observable(null),
-    _tableData: null,
-    defaultHeaderConfig: {
-        divider: true,
-        align: 'start',
-        getCellContent,
-        getCellClasses,
-        hidden: false,
-    },
+    _tableData: Vue.observable(null),
+    _objectData: Vue.observable(null),
 
     /**
      * Get the value of apiData
@@ -132,6 +133,21 @@ export default {
     },
 
     /**
+     * Get the value of objectData
+     * @returns {object} the value of objectData
+     */
+    get objectData() {
+        return this._objectData;
+    },
+    /**
+     * Change the value of objectData
+     * @param {object} value the new value of objectData
+     */
+    set objectData(value) {
+        this._objectData = value;
+    },
+
+    /**
      * Fetch data from an API
      * @returns {Promise} the promise of the fetch from the API
      */
@@ -149,44 +165,101 @@ export default {
     },
     /**
      * Generate an array of unique headers from the current table data
-     * @returns {array} the array of headers
      */
     generateHeaders() {
-        const headers = [];
+        let headers = [];
+        /** Header index */
         let hid = 0;
 
-        this.tableData?.forEach((item) => {
-            Object.keys(item).forEach((key) => {
-                let label = String(key.charAt(0).toUpperCase() + key.slice(1));
+        if (this.tableData && this.tableData?.length > 0) {
+            const firstRow = this.tableData[0];
 
-                if (!headers.some((header) => header.value === key)) {
-                    headers.push({
+            /* if the data is made of objects, generate headers based on objects' unique fields */
+            if (typeof firstRow === 'object' && !Array.isArray(firstRow)) {
+                /* In generic mode, add an item index header for navigation */
+                if (this.config.dataType === 'generic') {
+                    const indexHeader = {
                         ...this.defaultHeaderConfig,
-                        text: label,
-                        value: key,
-                        hid,
-                        visible: true,
-                    });
-
-                    hid++;
+                        text: '#',
+                        value: '__index',
+                        width: '60px',
+                        hid: hid++,
+                    };
+                    headers.push(indexHeader);
                 }
-            });
-        });
 
-        this.headers = headers;
-        /* Once headers are set, check if there's any column configuration in storage and apply it */
-        StorageConfigManager.loadStorageColumnOptions();
+                /* If the table is made of objects and not arrays, look for unique keys and create headers */
+                this.tableData.forEach((item) => {
+                    Object.keys(item).forEach((key) => {
+                        let label = String(key.charAt(0).toUpperCase() + key.slice(1));
+
+                        if (!headers.some((header) => header.value === key)) {
+                            headers.push({
+                                ...this.defaultHeaderConfig,
+                                text: label,
+                                value: key,
+                                hid,
+                            });
+
+                            hid++;
+                        }
+                    });
+                });
+            } else if (typeof firstRow === 'string' || typeof firstRow === 'number' || typeof firstRow === 'boolean') {
+                /* If the data is an array of simple values, assign index/key headers */
+                /* The index header is just the index of the item in the array (__zid) */
+                const indexHeader = {
+                    ...this.defaultHeaderConfig,
+                    text: 'Index',
+                    value: 'index',
+                    hid: 0,
+                };
+                indexHeader.getCellContent = (header, item) => {
+                    return {
+                        isHtml: false,
+                        value: item.__zid,
+                    };
+                };
+
+                headers = [
+                    indexHeader,
+                    {
+                        ...this.defaultHeaderConfig,
+                        text: 'Value',
+                        value: 'value',
+                        hid: 1,
+                    },
+                ];
+            }
+
+            this.headers = headers;
+            /* Once headers are set, check if there's any column configuration in storage and apply it */
+            StorageConfigManager.loadStorageColumnOptions();
+        }
     },
     /**
-     * Generate a set of headers from a configuration array
-     * @param {object[]} headersConfig the configuration array
+     * Generate a set of headers from a remote data configuration
      * @returns {array} the array of generated headers
      */
     generateHeadersFromConfig() {
         const headers = [];
-        let hid = 0;
 
         if (Array.isArray(this.headersConfig)) {
+            /** Header index */
+            let hid = 0;
+
+            /* In generic mode, add an item index header for navigation */
+            if (this.config.dataType === 'generic') {
+                const indexHeader = {
+                    ...this.defaultHeaderConfig,
+                    text: '#',
+                    value: '__index',
+                    width: '60px',
+                    hid: hid++,
+                };
+                headers.push(indexHeader);
+            }
+
             this.headersConfig.forEach((h) => {
                 if (h.value === '_row' && h.class) {
                     /* Configuration for the entire row (table item) */
@@ -204,7 +277,6 @@ export default {
                             text: label,
                             value: h.value,
                             hid,
-                            visible: true,
                         };
 
                         /** Header config has class directives :
@@ -240,7 +312,7 @@ export default {
     },
     /**
      * Find the data in the API response with the provided data path
-     * @returns {array} the array of table data
+     * @returns {*} Either table data or object data depending on data found
      */
     findDataFromPath() {
         if (this.config.dataType !== 'generic') {
@@ -256,21 +328,36 @@ export default {
         let foundData = this.apiData;
         let path = this.config.dataPath === '' ? null : this.config.dataPath.split('.');
 
+        /* Try to find the data using the provided path */
         if (path) {
             for (let i = 0; i < path.length; i++) {
-                if (this.apiData[path[i]]) {
-                    tableData = this.apiData[path[i]];
+                if (foundData && foundData[path[i]]) {
+                    foundData = foundData[path[i]];
                 } else {
-                    tableData = null;
+                    foundData = null;
                     break;
                 }
             }
-        } else {
-            tableData = Array.isArray(this.apiData) ? this.apiData : [];
         }
 
-        this.tableData = tableData;
-        return this.tableData;
+        if (Array.isArray(foundData) && foundData.length > 0) {
+            this.tableData = foundData;
+            this.objectData = null;
+            /* If the data is an array, generate new table headers */
+            if (this.config.headersUrl && this.config.dataType === 'generic') {
+                /* If headers config url was set, fetch it and assign headers */
+                this.fetchHeadersConfig();
+            } else {
+                /* Generate headers based on the data */
+                this.generateHeaders();
+            }
+        } else if (typeof foundData === 'object') {
+            this.objectData = foundData;
+            this.tableData = null;
+        } else {
+            [this.tableData, this.objectData] = [null, null];
+        }
+        return this.tableData || this.objectData;
     },
     /**
      * Set values for the config object from a route's query params

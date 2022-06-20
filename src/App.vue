@@ -1,22 +1,31 @@
 <template>
     <v-app>
+        <TreePanel
+            v-if="DataManager.apiData && DataManager.config.dataType === 'generic'"
+            :path="DataManager.config.dataPath"
+            :toggle-panel="$store.showTreePanel"
+            :api-data="DataManager.apiData"
+        />
         <v-main>
-            <div class="ml-1 mr-2">
-                <AutoTable v-if="DataManager.tableData" :headers="DataManager.headers" :items="DataManager.tableData" />
-                <ConfigDialog />
-                <v-btn
-                    elevation="2"
-                    color="primary"
-                    fab
-                    absolute
-                    bottom
-                    left
-                    class="__settings-btn"
-                    @click="openConfigDialog"
-                >
-                    <v-icon>mdi-wrench</v-icon>
-                </v-btn>
-            </div>
+            <Breadcrumbs
+                v-if="DataManager.config && DataManager.config.dataType === 'generic'"
+                :path="DataManager.config.dataPath"
+            />
+            <AutoTable v-if="DataManager.tableData" :headers="DataManager.headers" :items="DataManager.tableData" />
+            <AutoObject v-if="DataManager.objectData" :object="DataManager.objectData" />
+            <ConfigDialog />
+            <v-btn
+                elevation="2"
+                color="primary"
+                fab
+                absolute
+                bottom
+                left
+                class="__settings-btn"
+                @click="openConfigDialog"
+            >
+                <v-icon>mdi-wrench</v-icon>
+            </v-btn>
         </v-main>
     </v-app>
 </template>
@@ -28,8 +37,11 @@ a:link {
 </style>
 
 <script>
-import AutoTable from '@/components/AutoTable';
-import ConfigDialog from '@/components/ConfigDialog';
+import AutoTable from '@/components/AutoTable.vue';
+import AutoObject from '@/components/AutoObject.vue';
+import ConfigDialog from '@/components/ConfigDialog.vue';
+import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import TreePanel from '@/components/TreePanel.vue';
 import DataManager from '@/plugins/dataManager';
 import StorageConfigManager from '@/plugins/storageConfigManager';
 import { loadApiSpecificStyle } from '@/plugins/formatManager';
@@ -39,16 +51,15 @@ export default {
     name: 'App',
     components: {
         AutoTable,
+        AutoObject,
         ConfigDialog,
+        Breadcrumbs,
+        TreePanel,
     },
     data() {
         return {
-            appVersion: process.env.VUE_APP_VERSION,
-            appName: process.env.VUE_APP_NAME,
             DataManager,
             StorageConfigManager,
-            apiData: null,
-            tableData: null,
         };
     },
     methods: {
@@ -58,31 +69,8 @@ export default {
         fetchDataAndInitComponents() {
             /* Fetch data from the API */
             DataManager.fetchApiData()
-                .then((response) => {
-                    this.apiData = response;
-                    this.tableData = DataManager.findDataFromPath();
-
-                    /* If headers config url was entered, fetch it and generate headers */
-                    if (DataManager.config.headersUrl) {
-                        DataManager.fetchHeadersConfig().then((headersResponse) => {
-                            const headersConfig = headersResponse?.data || headersResponse;
-
-                            if (headersConfig) {
-                                DataManager.generateHeadersFromConfig(headersConfig);
-                            } else {
-                                DataManager.generateHeaders();
-                            }
-                            /* Once headers are set, check if there's any column configuration in storage and apply it */
-                            StorageConfigManager.loadStorageColumnOptions();
-                        });
-                    } else {
-                        DataManager.generateHeaders();
-                    }
-
-                    if (!this.tableData) {
-                        EventBus.$emit('error', 'Error occurs in data path.');
-                        this.$store.showConfigDialog = true;
-                    }
+                .then(() => {
+                    this.checkIfDataWasFound();
                 })
                 .catch((error) => {
                     EventBus.$emit('error', error);
@@ -97,13 +85,43 @@ export default {
             console.error('ZTable Error: ', error);
         },
         /**
-         * Handle config data
-         * @param {Object} config
+         * Handle the updated Data config
+         * @param {Object} config - the updated Data config from the DataManager
+         * @param {Boolean} shouldFetchData Wether or not the data needs to be refetched from an API URL
+         * @param {Boolean} shouldFetchHeaders Wether or not the headers config needs to be refetched from an API URL
          */
-        handleConfig(config) {
+        handleConfig(config, shouldFetchData, shouldFetchHeaders) {
             if (config.dataUrl) {
-                this.fetchDataAndInitTable();
-                this.$store.showConfigDialog = false;
+                if (shouldFetchData) {
+                    /* Fetch data from source URL */
+                    this.fetchDataAndInitComponents();
+                    this.closeConfigDialog();
+                } else if (shouldFetchHeaders) {
+                    /* Fetch headers config from remote URL */
+                    DataManager.fetchHeadersConfig()
+                        .then(() => {
+                            this.closeConfigDialog();
+                        })
+                        .catch((err) => {
+                            EventBus.$emit('ZTable Error : fetching remote headers', err);
+                            this.openConfigDialog();
+                        });
+                }
+            } else {
+                /* Show form again */
+                console.log('ZTable Error: No data URL provided');
+                this.openConfigDialog();
+            }
+        },
+        /**
+         * Check if data was found at the provided path
+         */
+        checkIfDataWasFound() {
+            const foundData = DataManager.findDataFromPath();
+
+            if (!foundData) {
+                EventBus.$emit('error', 'Error occurs in data path.');
+                this.openConfigDialog();
             } else {
                 this.closeConfigDialog();
             }
@@ -152,11 +170,15 @@ export default {
         $route: {
             handler(newRoute, oldRoute) {
                 if (
-                    newRoute.query?.source !== oldRoute?.query?.source ||
-                    newRoute.query?.path !== oldRoute?.query?.path ||
-                    newRoute.query?.type !== oldRoute?.query?.type ||
-                    newRoute.query?.headers !== oldRoute?.query?.headers
+                    !oldRoute ||
+                    !oldRoute.query ||
+                    newRoute.query?.source !== oldRoute.query.source ||
+                    newRoute.query?.path !== oldRoute.query.path ||
+                    newRoute.query?.type !== oldRoute.query.type ||
+                    newRoute.query?.headers !== oldRoute.query.headers
                 ) {
+                    /* If config has changed, update it in the DataManager
+                    and assess whether or not to fetch data or custom headers */
                     const config = DataManager.setConfigFromRoute(newRoute);
 
                     const pathHasChanged = newRoute.query?.path !== oldRoute?.query?.path;

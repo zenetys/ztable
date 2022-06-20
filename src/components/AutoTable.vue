@@ -20,7 +20,7 @@
                             v-bind="attrs"
                             v-on="{ ...tooltip, ...menu }"
                             id="__column-options-button"
-                            :class="computedColumnButtonClasses"
+                            :class="columnButtonClasses"
                         >
                             <v-icon>mdi-application-cog</v-icon>
                         </v-btn>
@@ -89,12 +89,17 @@
         >
             <template v-for="header in computedHeaders" v-slot:[`item.${header.value}`]="{ item }">
                 <span
-                    v-if="item[header.value] || item[header.value] === 0"
+                    v-if="item[header.value] || item[header.value] === 0 || header.value === '__index'"
                     :key="header.hid"
                     :class="header.getCellClasses(header, item)"
-                    :title="header.getCellContent(header, item)"
-                    v-html="header.getCellContent(header, item)"
-                ></span>
+                    :title="header.getCellContent(header, item).text"
+                >
+                    <span
+                        v-if="header.getCellContent(header, item) && header.getCellContent(header, item).isHtml"
+                        v-html="header.getCellContent(header, item).value"
+                    ></span>
+                    <span v-else> {{ header.getCellContent(header, item).value }} </span>
+                </span>
             </template>
         </v-data-table>
     </div>
@@ -197,32 +202,24 @@ export default {
         /**
          * Format the table items to display in the table
          * @computed
-         * @returns {Array<{id: number, [key: string]: any}>} the formatted table items to display in the table
+         * @returns {Array<{__zid: number, [key: string]: any}>} the formatted table items to display in the table
          */
         formattedTableItems() {
             return this.items?.map((item, index) => {
-                const row = { ...item };
-
-                Object.keys(row).forEach((property) => {
-                    if (Array.isArray(row[property])) {
-                        // If the property is an array, assign an object with a text value and the array as properties
-                        row[property] = {
-                            text: row[property].length + ' elements',
-                            value: row[property],
-                        };
-                    } else if (typeof row[property] === 'object') {
-                        // If the property is an object, assign an object with the object as properties
-                        row[property] = {
-                            text: 'Object',
-                            value: row[property],
-                        };
-                    }
-                });
-
-                return {
-                    __zid: index,
-                    ...row,
-                };
+                if (typeof item === 'object') {
+                    return {
+                        ...item,
+                        __zid: index,
+                    };
+                } else {
+                    /* If the data is an array of simple values (like strings or numbers),
+                     just create data items with the indexes and values as properties */
+                    return {
+                        index,
+                        value: item,
+                        __zid: index,
+                    };
+                }
             });
         },
         /**
@@ -243,9 +240,6 @@ export default {
                 ? DataManager.getItemClassesFromHeaderConfig
                 : getItemClasses;
         },
-        computedColumnButtonClasses() {
-            return DataManager.config.dataType === 'generic' ? '__column-options-button--offset-top' : '';
-        },
     },
     data() {
         return {
@@ -255,6 +249,7 @@ export default {
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             tableHeight: null,
             inputTimeout: null,
+            columnButtonClasses: '',
         };
     },
     methods: {
@@ -263,15 +258,22 @@ export default {
         /**
          * Calculate the height of the table
          */
-        computeTableHeight() {
-            const autoTableElement = document.querySelector('#auto-table');
+        handleWindowResize() {
+            /* HANDLE TABLE HEIGHT */
+            /* Calculate the height of the Breadcrumbs component */
+            const breadcrumbsElement = document.getElementById('__breadcrumbs');
+            const breadcrumbsHeight = breadcrumbsElement ? breadcrumbsElement.clientHeight : 0;
+            /* Calculate the height of the table footer component */
+            const footerElements = document.getElementsByClassName('v-data-footer');
+            const footerHeight = footerElements?.length > 0 ? footerElements[0].clientHeight : 0;
 
-            if (autoTableElement?.parentElement.style.height) {
-                this.tableHeight = autoTableElement?.parentElement.style.height;
-            } else {
-                this.tableHeight =
-                    window.innerHeight - document.getElementsByClassName('v-data-footer')[0]?.clientHeight;
-            }
+            this.tableHeight = window.innerHeight - breadcrumbsHeight - footerHeight;
+
+            /* HANDLE COLUMN BUTTON POSITIONNING */
+            this.columnButtonClasses =
+                window.innerWidth < 900 && DataManager.config.dataType === 'generic'
+                    ? '__column-options-button--offset-top'
+                    : '';
         },
         /**
          * Update the width a header in the table and save its config in local storage
@@ -281,21 +283,27 @@ export default {
                 clearTimeout(this.inputTimeout);
             }
             this.inputTimeout = setTimeout(() => {
-                const headers = [...DataManager.headers];
+                const headers = [...this.headers];
                 const updatedHeader = headers.find((h) => h.value === header.value);
                 /* Update header's width in the table */
                 updatedHeader.width = header.width;
                 DataManager.headers = headers;
                 /* Save the column options in storage */
-                this.StorageConfigManager.updateStorageColumnOptions(header, 'width');
+                StorageConfigManager.updateStorageColumnOptions(header, 'width');
             }, 400);
         },
     },
+    created() {
+        window.addEventListener('resize', this.handleWindowResize);
+    },
     mounted() {
-        this.computeTableHeight();
+        this.handleWindowResize();
     },
     updated() {
-        this.computeTableHeight();
+        this.handleWindowResize();
+    },
+    destroyed() {
+        window.removeEventListener('resize', this.handleWindowResize);
     },
 };
 </script>
