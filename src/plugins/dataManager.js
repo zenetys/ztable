@@ -165,6 +165,7 @@ export default {
                         text: label,
                         value: key,
                         hid,
+                        visible: true,
                     });
 
                     hid++;
@@ -235,7 +236,7 @@ export default {
         }
 
         this.headers = headers;
-        return headers;
+        return this.headers;
     },
     /**
      * Find the data in the API response with the provided data path
