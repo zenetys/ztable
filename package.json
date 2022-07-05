@@ -2,7 +2,7 @@
   "name": "@zenetys/ztable",
   "version": "0.1.25",
   "author": "Jules KLU",
-  "email" : "jklu@zenetys.com",
+  "email": "jklu@zenetys.com",
   "url": "https://tools.zenetys.com/ztable/",
   "description": "Vuetify based panel to represent any data array of objects",
   "repository": {
@@ -29,7 +29,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^7.9.1",
     "@mdi/font": "^5.9.55",
-    "axios": "^0.20.0",
+    "axios": "^0.27.0",
     "chart.js": "^2.9.3",
     "core-js": "^3.6.5",
     "fs": "0.0.1-security",
@@ -43,8 +43,7 @@
     "vue-i18n": "^8.22.1",
     "vue-router": "^3.2.0",
     "vue-session": "^1.0.0",
-    "vuetify": "^2.5.8",
-    "vuex": "^3.6.2"
+    "vuetify": "^2.5.8"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

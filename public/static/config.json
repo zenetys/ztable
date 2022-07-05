@@ -17,13 +17,55 @@
             "icon": "mdi-chart-bar",
             "type": "rrdmenu",
             "subMenus": [
-                {"name": "DUBAI","database": "sw1:IPSLA-9","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]},
-                {"name": "LONDRES","database": "sw1:IPSLA-2","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]},
-                {"name": "NEW-YORK","database": "sw1:IPSLA-7","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]},
-                {"name": "PARIS","database": "sw1:IPSLA-1","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]},
-                {"name": "BOGOTA","database": "sw1:IPSLA-12","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]},
-                {"name": "RIO","database": "sw1:IPSLA-11","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]},
-                {"name": "SYDNEY","database": "sw1:IPSLA-10","url": "/graph/","type": "div","datasources": ["RTTMin","AvgJitter","pktLoss"]}
+                {
+                    "name": "DUBAI",
+                    "database": "sw1:IPSLA-9",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                },
+                {
+                    "name": "LONDRES",
+                    "database": "sw1:IPSLA-2",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                },
+                {
+                    "name": "NEW-YORK",
+                    "database": "sw1:IPSLA-7",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                },
+                {
+                    "name": "PARIS",
+                    "database": "sw1:IPSLA-1",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                },
+                {
+                    "name": "BOGOTA",
+                    "database": "sw1:IPSLA-12",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                },
+                {
+                    "name": "RIO",
+                    "database": "sw1:IPSLA-11",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                },
+                {
+                    "name": "SYDNEY",
+                    "database": "sw1:IPSLA-10",
+                    "url": "/graph/",
+                    "type": "div",
+                    "datasources": ["RTTMin", "AvgJitter", "pktLoss"]
+                }
             ]
         }
     ]

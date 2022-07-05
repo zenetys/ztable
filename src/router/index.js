@@ -1,19 +1,19 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import AutoTable from '../components/AutoTable'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import AutoTable from '@/components/AutoTable';
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
-  {
-    path: '/panel',
-    name: 'Bac à état',
-    component: AutoTable,
-  },
-]
+    {
+        path: '/panel',
+        name: 'Bac à état',
+        component: AutoTable,
+    },
+];
 
 const router = new VueRouter({
-  routes
-})
+    routes,
+});
 
-export default router
+export default router;

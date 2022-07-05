@@ -3,9 +3,8 @@ import VueI18n from 'vue-i18n';
 
 Vue.use(VueI18n);
 
-const messages = { 
-    'en': {
-
+const messages = {
+    en: {
         // Table Panel Headers
         stateFlag: 'Etat',
         priority: 'Priority',
@@ -19,7 +18,7 @@ const messages = {
         sla: 'SLA',
         site: 'Site',
         type: 'Type',
-        lastEv:'Last EV',
+        lastEv: 'Last EV',
         email: 'Email',
         phone: 'Phone',
         debug: 'Debug',
@@ -63,7 +62,7 @@ const messages = {
         save: 'Save',
         cancel: 'Cancel',
         // Button label
-        ok: "OK",
+        ok: 'OK',
 
         // Filters
         saveFilter: 'Save this filter',
@@ -81,19 +80,17 @@ const messages = {
             recent: 'Recent',
             known: 'Known',
             allProblems: 'All problems',
-            any: 'All elements'
+            any: 'All elements',
         },
-        helpFilterQueryFormat: "Enter here your query. \n" + 
-                            "Ex: 'down'",
+        helpFilterQueryFormat: 'Enter here your query. \n' + "Ex: 'down'",
 
         // Columns icons
-        trackLabel: "Tracked",
-        ackLabel: "Ack",
-        noTrackLabel: "Not tracked",
-        noAckLabel: "Not ack",
+        trackLabel: 'Tracked',
+        ackLabel: 'Ack',
+        noTrackLabel: 'Not tracked',
+        noAckLabel: 'Not ack',
     },
-    'fr': {
-
+    fr: {
         // Table Panel Headers
         stateFlag: 'Etat',
         priority: 'Priorité',
@@ -154,7 +151,7 @@ const messages = {
         save: 'Enregistrer',
         cancel: 'Annuler',
         // Button label
-        ok: "OK",
+        ok: 'OK',
 
         // Filters
         saveFilter: 'Enregistrer ce filtre',
@@ -172,21 +169,20 @@ const messages = {
             recent: 'Récent',
             known: 'Connu',
             allProblems: 'Tous les problèmes',
-            any: 'Tous les éléments'
+            any: 'Tous les éléments',
         },
-        helpFilterQueryFormat: "Saisissez dans ce champ votre requette. \n" + 
-                            "Ex: 'down'",
+        helpFilterQueryFormat: 'Saisissez dans ce champ votre requette. \n' + "Ex: 'down'",
 
         // Columns icons
-        trackLabel: "Tracké",
-        ackLabel: "Acquitté",
-        noTrackLabel: "Non tracké",
-        noAckLabel: "Non acquitté",
-    }
+        trackLabel: 'Tracké',
+        ackLabel: 'Acquitté',
+        noTrackLabel: 'Non tracké',
+        noAckLabel: 'Non acquitté',
+    },
 };
 
-const i18n = new VueI18n({  
-    locale: 'fr', // set locale    
+const i18n = new VueI18n({
+    locale: 'fr', // set locale
     fallbackLocale: 'fr', // set fallback locale
     messages, // set locale messages
 });
