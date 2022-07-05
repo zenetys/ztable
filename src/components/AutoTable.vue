@@ -1,28 +1,31 @@
 <template>
-    <v-data-table
-        id="auto-table"
-        :headers="headers"
-        :items="formattedTableItems"
-        class="elevation-2"
-        dense
-        :item-class="getItemClasses"
-        item-key="__zid"
-        :search="search"
-        fixed-header
-        :height="tableHeight"
-        :footer-props="tableFooterProps"
-        mobile-breakpoint="0"
-    >
-        <template v-for="header in headers" v-slot:[`item.${header.value}`]="{ item }">
-            <span
-                v-if="item[header.value]"
-                :key="header.id"
-                :class="header.getCellClasses(header, item)"
-                :title="header.getCellContent(item[header.value])"
-                v-html="header.getCellContent(item[header.value])"
-            ></span>
-        </template>
-    </v-data-table>
+    <div>
+        <v-data-table
+            v-if="headers && formattedTableItems"
+            id="auto-table"
+            :headers="headers"
+            :items="formattedTableItems"
+            class="elevation-2"
+            dense
+            :item-class="itemClasses"
+            item-key="__zid"
+            :search="search"
+            fixed-header
+            :height="tableHeight"
+            :footer-props="tableFooterProps"
+            mobile-breakpoint="0"
+        >
+            <template v-for="header in headers" v-slot:[`item.${header.value}`]="{ item }">
+                <span
+                    v-if="item[header.value] || item[header.value] === 0"
+                    :key="header.hid"
+                    :class="header.getCellClasses(header, item)"
+                    :title="header.getCellContent(header, item)"
+                    v-html="header.getCellContent(header, item)"
+                ></span>
+            </template>
+        </v-data-table>
+    </div>
 </template>
 
 <style lang="scss">
@@ -83,24 +86,61 @@ export default {
          * @returns {Array<{id: number, [key: string]: any}>} the formatted table items to display in the table
          */
         formattedTableItems() {
-            return this.items?.map((item, index) => ({
-                __zid: index,
-                ...item,
-            }));
+            return this.items?.map((item, index) => {
+                const row = { ...item };
+
+                Object.keys(row).forEach((property) => {
+                    if (Array.isArray(row[property])) {
+                        // If the property is an array, assign an object with a text value and the array as properties
+                        row[property] = {
+                            textVal: row[property].length + ' elements',
+                            value: row[property],
+                        };
+                    } else if (typeof row[property] === 'object') {
+                        // If the property is an object, assign an object with the object as properties
+                        row[property] = {
+                            text: 'Object',
+                            value: row[property],
+                        };
+                    }
+                });
+
+                return {
+                    __zid: index,
+                    ...row,
+                };
+            });
         },
     },
     data() {
         return {
             selected: [],
             search: '',
-            tableHeight: 0,
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
+            tableHeight: null,
         };
     },
     methods: {
         getItemClasses,
         customSortByColumn,
         /**
+         * Calculate the height of the table
+         */
+        computeTableHeight() {
+            const autoTableElement = document.querySelector('#auto-table');
+
+            if (autoTableElement?.parentElement.style.height) {
+                this.tableHeight = autoTableElement?.parentElement.style.height;
+            } else {
+                this.tableHeight = window.innerHeight - document.getElementsByClassName('v-data-footer')[0]?.clientHeight;
+            }
+        }
+    },
+    mounted() {
+        this.computeTableHeight();
+    },
+    updated() {
+        this.computeTableHeight();
     },
 };
 </script>

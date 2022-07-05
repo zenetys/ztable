@@ -17,6 +17,7 @@ a:link {
 <script>
 import AutoTable from '@/components/AutoTable';
 import DataManager from '@/plugins/dataManager';
+import { loadApiSpecificStyle } from '@/plugins/formatManager';
 import { EventBus } from '@/plugins/eventBus';
 
 export default {
@@ -38,43 +39,43 @@ export default {
          * Fetch data from the provided API and initialise the table data using the DataManager
          */
         fetchDataAndInitTable() {
-            DataManager.apiUrl = this.$apiConfig.apiUrl;
-            DataManager.dataPath = this.$apiConfig.dataPath;
+            /* If data type is API specific, load the API specific style */
+            if (DataManager.config.dataType !== 'generic') {
+                loadApiSpecificStyle(DataManager.config.dataType);
+            }
+
             DataManager.fetchApiData()
                 .then((response) => {
                     this.apiData = response;
-                    this.tableData = DataManager.generateTableData();
+                    this.tableData = DataManager.findDataFromPath();
                     this.headers = DataManager.generateHeaders();
 
-                    if (this.tableData) {
-                        this.$emit('error', 'Error occurs in data path.');
+                    if (!this.tableData) {
+                        EventBus.$emit('error', 'Error occurs in data path.');
                     }
                 })
                 .catch((error) => {
-                    this.$emit('error', error);
+                    EventBus.$emit('error', error);
                 });
         },
         handleError(error) {
-            console.log('Error: ', error);
+            console.error('ZTable Error: ', error);
+        },
+        handleConfig(config) {
+            if (config.dataUrl) {
+                this.fetchDataAndInitTable();
+            } else {
+                // prompt values
+            }
         },
     },
     created() {
+        const config = DataManager.setConfigFromRoute(this.$route);
+        this.handleConfig(config);
         EventBus.$on('error', this.handleError);
     },
     beforeDestroy() {
         EventBus.$off('error', this.handleError);
-    },
-    beforeMount() {
-        this.fetchDataAndInitTable();
-    },
-};
-</script>
-    },
-    beforeDestroy() {
-        EventBus.$off('error', this.handleError);
-    },
-    beforeMount() {
-        this.fetchDataAndInitTable();
     },
 };
 </script>
