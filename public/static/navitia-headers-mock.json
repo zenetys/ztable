@@ -1,0 +1,47 @@
+[
+    {
+        "value": "_row",
+        "class": {
+            "arguments": "row",
+            "body": "{ if (row.__zid < 5) return 'green'; } "
+        }
+    },
+    {
+        "value": "description",
+        "class": {
+            "arguments": "a, b",
+            "body": "return;"
+        }
+    },
+    {
+        "value": "count",
+        "format": "number",
+        "class": "red-text bold"
+    },
+    {
+        "value": "geo",
+        "format": "geo-link"
+    },
+    {
+        "value": "provider_id",
+        "class": {
+            "arguments": "a,b",
+            "body": "return 'red';"
+        }
+    },
+    {
+        "value": "coverage_id",
+        "class": "bold"
+    },
+    {
+        "value": "dataset_id",
+        "label": "Dataset"
+    },
+    {
+        "value": "data_source_site"
+    },
+    {
+        "value": "data_source_file",
+        "format": "uri"
+    }
+]

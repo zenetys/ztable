@@ -1,9 +1,9 @@
 <template>
     <div>
         <v-data-table
-            v-if="headers && formattedTableItems"
+            v-if="computedHeaders && formattedTableItems"
             id="auto-table"
-            :headers="headers"
+            :headers="computedHeaders"
             :items="formattedTableItems"
             class="elevation-2"
             dense
@@ -15,7 +15,7 @@
             :footer-props="tableFooterProps"
             mobile-breakpoint="0"
         >
-            <template v-for="header in headers" v-slot:[`item.${header.value}`]="{ item }">
+            <template v-for="header in computedHeaders" v-slot:[`item.${header.value}`]="{ item }">
                 <span
                     v-if="item[header.value] || item[header.value] === 0"
                     :key="header.hid"
@@ -64,6 +64,7 @@
 <script>
 import { VDataTable } from 'vuetify/lib';
 import { getItemClasses, customSortByColumn } from '../plugins/formatManager';
+import DataManager from '../plugins/dataManager';
 
 export default {
     name: 'auto-table',
@@ -98,7 +99,7 @@ export default {
                     if (Array.isArray(row[property])) {
                         // If the property is an array, assign an object with a text value and the array as properties
                         row[property] = {
-                            textVal: row[property].length + ' elements',
+                            text: row[property].length + ' elements',
                             value: row[property],
                         };
                     } else if (typeof row[property] === 'object') {
@@ -115,6 +116,24 @@ export default {
                     ...row,
                 };
             });
+        },
+        /**
+         * Filter the table headers to only display the selected
+         * @computed
+         * @returns {Array} the filtered table headers to display in the table
+         */
+        computedHeaders() {
+            return this.headers.filter((header) => header.hidden !== true);
+        },
+        /**
+         * Get classes for the table items depending on headers config
+         * @computed
+         * @returns {*} the classes for the table items depending on headers config
+         */
+        itemClasses() {
+            return DataManager.config.dataType === 'generic' && DataManager.config.headersUrl
+                ? DataManager.getItemClassesFromHeaderConfig
+                : getItemClasses;
         },
     },
     data() {
@@ -137,9 +156,10 @@ export default {
             if (autoTableElement?.parentElement.style.height) {
                 this.tableHeight = autoTableElement?.parentElement.style.height;
             } else {
-                this.tableHeight = window.innerHeight - document.getElementsByClassName('v-data-footer')[0]?.clientHeight;
+                this.tableHeight =
+                    window.innerHeight - document.getElementsByClassName('v-data-footer')[0]?.clientHeight;
             }
-        }
+        },
     },
     mounted() {
         this.computeTableHeight();

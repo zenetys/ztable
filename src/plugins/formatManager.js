@@ -1,6 +1,15 @@
 import DataManager from '@/plugins/dataManager';
-import NavitiaManager from '@/plugins/api-managers/navitia/navitia-manager';
+import NavitiaManager from '@/plugins/api-managers/navitia/navitiaManager';
 import { EventBus } from '@/plugins/eventBus';
+
+/**
+ * Configuration object matching formatting methods with formats
+ */
+const formattingMethods = {
+    number: getFormattedNumber,
+    'geo-link': getGeoLink,
+    uri: getLinkFromURI,
+};
 
 /**
  * Get the content of a table cell
@@ -9,7 +18,7 @@ import { EventBus } from '@/plugins/eventBus';
  * @returns {*} the content to display in the cell.
  */
 export function getCellContent(header, item) {
-    if (DataManager.config.dataType === 'generic') {
+    if (DataManager.config.dataType && DataManager.config.dataType === 'generic') {
         return getGenericCellContent(header, item);
     } else {
         // Temporary - to be replaced by API specific methods
@@ -25,8 +34,8 @@ export function getCellContent(header, item) {
  */
 function getGenericCellContent(header, item) {
     const cell = item[header.value];
-    if (typeof cell === 'object' && cell.textVal) {
-        return `<a href="#" title="${cell.value}">${cell.textVal}</a>`;
+    if (typeof cell === 'object' && cell.text) {
+        return `<a href="#" title="Open this sub-level">${cell.text}</a>`;
     } else {
         return String(cell);
     }
@@ -96,4 +105,63 @@ export function loadApiSpecificStyle(type) {
             .then()
             .catch((err) => EventBus.$emit('error', { message: `Error loading stylesheet for : ${type}`, err }));
     }
+}
+
+/**
+ * Get a formatting method from a given format
+ * @param {string} format the format.
+ * @returns {*} the formatting method.
+ */
+export function getSpecialFormatContent(format) {
+    return formattingMethods[format] ? formattingMethods[format] : getCellContent;
+}
+
+/**
+ * Get a link to googlemaps from given coordinates
+ * @param {object} header the header of the column.
+ * @param {object} item the item of the row.
+ * @returns {string} the link to googlemaps.
+ */
+function getGeoLink(header, item) {
+    const value = item[header.value].value;
+
+    if (!Array.isArray(value)) {
+        return value;
+    } else {
+        const latlngString = value.join(',');
+        return `<a href="https://maps.google.com/?q=${latlngString}" title="Go to coordinates" target="_blank">${latlngString}</a>`;
+    }
+}
+
+/**
+ * Generate an anchortag from a given URI
+ * @param {object} header the header of the column.
+ * @param {object} item the item of the row.
+ * @returns {string} the link to the URI.
+ */
+function getLinkFromURI(header, item) {
+    const uri = item[header.value];
+
+    if (!uri) {
+        return {
+            isHtml: false,
+            value: '',
+        };
+    } else {
+        return {
+            isHtml: true,
+            value: `<a href="${uri}" title="Download file" target="_blank">${uri}</a>`,
+        };
+    }
+}
+
+/**
+ * Format a number value to a string
+ * @param {object} header the header of the column.
+ * @param {object} item the item of the row.
+ * @returns {string} the number in string format.
+ */
+function getFormattedNumber(header, item) {
+    const value = item[header.value].value;
+    return String(value);
 }
