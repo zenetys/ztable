@@ -55,3 +55,20 @@ export function generateUrlFromPath(newPath) {
 
     return Router.resolve(updatedRoute).href;
 }
+
+/**
+ * Swap two elements in an array, given their relative indexes
+ * @param {array} array the array to modify
+ * @param {number} index1 the index of the first element to swap
+ * @param {number} index2 the index of the second element to swap
+ * @returns {array} the modified array
+ */
+export function swapElementsInArray(array, index1, index2) {
+    const items = [...array];
+    const item1 = items[index1];
+    const item2 = items[index2];
+    items[index1] = item2;
+    items[index2] = item1;
+
+    return items;
+}

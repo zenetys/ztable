@@ -234,7 +234,7 @@ export default {
 
             this.headers = headers;
             /* Once headers are set, check if there's any column configuration in storage and apply it */
-            StorageConfigManager.loadStorageColumnOptions();
+            StorageConfigManager.loadStorageConfig();
         }
     },
     /**
@@ -389,7 +389,7 @@ export default {
                 if (this.headersConfig) {
                     this.generateHeadersFromConfig();
                     /* Once headers are set, check if there's any column configuration in storage and apply it */
-                    StorageConfigManager.loadStorageColumnOptions();
+                    StorageConfigManager.loadStorageConfig();
                 }
 
                 return this.headersConfig;

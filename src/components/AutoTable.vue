@@ -31,24 +31,27 @@
             <v-list dense>
                 <v-list-item>
                     <v-row>
-                        <v-col cols="6">
+                        <v-col cols="5">
                             <strong>Column</strong>
                         </v-col>
-                        <v-col cols="3">
+                        <v-col cols="2">
                             <strong>Visible</strong>
                         </v-col>
-                        <v-col cols="3" class="text-center">
+                        <v-col cols="2" class="text-center">
                             <strong>Width</strong>
+                        </v-col>
+                        <v-col cols="3" class="text-center">
+                            <strong>Position</strong>
                         </v-col>
                     </v-row>
                 </v-list-item>
                 <v-divider></v-divider>
-                <v-list-item v-for="header in headers" :key="header.value" class="__column-menu">
+                <v-list-item v-for="header in orderedHeaders" :key="header.value" class="__column-menu">
                     <v-row>
-                        <v-col cols="6" align-self="center">
+                        <v-col cols="5" align-self="center">
                             {{ header.text }}
                         </v-col>
-                        <v-col cols="3" class="__column-menu--visible-switch">
+                        <v-col cols="2" class="__column-menu--visible-switch">
                             <v-switch
                                 v-model="header.visible"
                                 dense
@@ -56,15 +59,34 @@
                                 @change="StorageConfigManager.updateStorageColumnOptions(header, 'visible')"
                             ></v-switch>
                         </v-col>
-                        <v-col cols="3" class="__column-menu--width-field">
+                        <v-col cols="2" class="__column-menu--width-field">
                             <v-text-field
                                 v-model="header.width"
                                 :disabled="!header.visible"
                                 @input="saveUpdatedWidth(header)"
                                 dense
                                 hide-details
-                                type="number"
                             ></v-text-field>
+                        </v-col>
+                        <v-col cols="3" class="__column-menu--order-buttons">
+                            <v-btn
+                                icon
+                                x-small
+                                color="primary"
+                                :disabled="isFirstHeader(header.hid)"
+                                @click="changeHeaderOrder(header, 'up')"
+                            >
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                            <v-btn
+                                icon
+                                x-small
+                                color="primary"
+                                :disabled="isLastHeader(header.hid)"
+                                @click="changeHeaderOrder(header, 'down')"
+                            >
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
                         </v-col>
                     </v-row>
                 </v-list-item>
@@ -141,6 +163,11 @@
     text-align: center;
 }
 
+.__column-menu--order-buttons {
+    display: flex;
+    justify-content: center;
+}
+
 .v-data-table {
     tbody {
         // Transparent color on hover each table tr
@@ -178,6 +205,7 @@ import DataManager from '@/plugins/dataManager';
 import StorageConfigManager from '@/plugins/storageConfigManager';
 import { VDataTable } from 'vuetify/lib';
 import { getItemClasses, customSortByColumn } from '@/plugins/formatManager';
+import { swapElementsInArray } from '@/plugins/utils';
 
 export default {
     name: 'auto-table',
@@ -228,7 +256,7 @@ export default {
          * @returns {Array} the filtered table headers to display in the table
          */
         computedHeaders() {
-            return this.headers.filter((header) => header.visible);
+            return this.orderedHeaders.filter((header) => header.visible);
         },
         /**
          * Get classes for the table items depending on headers config
@@ -249,6 +277,7 @@ export default {
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             tableHeight: null,
             inputTimeout: null,
+            orderedHeaders: [],
             columnButtonClasses: '',
         };
     },
@@ -291,6 +320,55 @@ export default {
                 /* Save the column options in storage */
                 StorageConfigManager.updateStorageColumnOptions(header, 'width');
             }, 400);
+        },
+        /**
+         * Assess whether a header is the first header in order or not.
+         * @param {number} headerId - the id of the header to check
+         * @returns {boolean} true if the header is the first header
+         */
+        isFirstHeader(headerId) {
+            return headerId === this.orderedHeaders[0].hid;
+        },
+        /**
+         * Assess whether a header is the last header in order or not.
+         * @param {number} headerId - the id of the header to check
+         * @returns {boolean} true if the header is the last header
+         */
+        isLastHeader(headerId) {
+            return headerId === this.orderedHeaders[this.orderedHeaders.length - 1].hid;
+        },
+        /**
+         * Move a header in the table order.
+         * @param {*} header - the header to move
+         * @param {string} direction - the direction of the movement
+         */
+        changeHeaderOrder(header, direction) {
+            const headerPosition = this.orderedHeaders.findIndex((h) => h.hid === header.hid);
+
+            if (direction === 'up') {
+                this.swapHeadersPositions(headerPosition, headerPosition - 1);
+            } else {
+                this.swapHeadersPositions(headerPosition, headerPosition + 1);
+            }
+        },
+        /**
+         * Swap two headers positions in the table order and save the config in local storage.
+         * @param {number} position1 - the position of the first header
+         * @param {number} position2 - the position of the second header
+         */
+        swapHeadersPositions(position1, position2) {
+            this.orderedHeaders = swapElementsInArray(this.orderedHeaders, position1, position2);
+
+            /* Save the column order in storage */
+            StorageConfigManager.saveOrderedHeadersInStorage(this.orderedHeaders);
+        },
+    },
+    watch: {
+        headers: {
+            handler(newHeaders) {
+                this.orderedHeaders = [...newHeaders];
+            },
+            immediate: true,
         },
     },
     created() {

@@ -67,15 +67,48 @@ export default {
         localStorage.setItem('storage-configs', JSON.stringify(storageConfigs));
     },
     /**
+     * Save the current order of the columns in local storage.
+     * @param {array} headers the current headers of the table
+     */
+    saveOrderedHeadersInStorage(headers) {
+        const storageConfigs = this.getStorageConfigs();
+        const storageConfigIndex = this.getStorageConfigIndex(storageConfigs);
+        let config = null;
+
+        if (storageConfigIndex > -1) {
+            config = storageConfigs[storageConfigIndex];
+        } else {
+            config = {};
+        }
+
+        const columnOrder = headers.map((header) => header.value);
+        config.columnOrder = columnOrder;
+
+        if (storageConfigIndex === -1) {
+            storageConfigs.push({
+                dataUrl: DataManager.config.dataUrl,
+                dataPath: DataManager.config.dataPath,
+                dataType: DataManager.config.dataType,
+                columnOrder,
+            });
+        } else {
+            storageConfigs[storageConfigIndex].columnOrder = columnOrder;
+        }
+
+        localStorage.setItem('storage-configs', JSON.stringify(storageConfigs));
+    },
+    /**
      * Look for a config object in local storage matching the current data and apply it.
      */
-    loadStorageColumnOptions() {
+    loadStorageConfig() {
         const storageConfigs = this.getStorageConfigs();
         const storageConfigIndex = this.getStorageConfigIndex(storageConfigs);
         const config = storageConfigs[storageConfigIndex];
-        const columnOptions = config?.columnOptions;
         const headers = DataManager.headers;
+        const columnOptions = config?.columnOptions;
+        const columnOrder = config?.columnOrder;
 
+        /* Load column options configuration */
         if (columnOptions) {
             headers.forEach((column) => {
                 const columnOption = columnOptions[column.value];
@@ -94,6 +127,15 @@ export default {
             });
 
             DataManager.headers = headers;
+        }
+
+        /* Load column order configuration */
+        if (columnOrder) {
+            DataManager.headers = DataManager.headers.sort((a, b) => {
+                const indexA = columnOrder.indexOf(a.value);
+                const indexB = columnOrder.indexOf(b.value);
+                return indexA - indexB;
+            });
         }
     },
 };
