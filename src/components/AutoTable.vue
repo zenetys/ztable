@@ -243,31 +243,35 @@ export default {
     },
     methods: {
         /**
-         * @async
          * Fetch data from an API and format it.
          */
-        async fetchTableItems() {
-            this.isLoading = true;
-            const errorContext = 'Could not fetch table items from the server.';
-            const path = this.$props.arrayData.split('.');
-            let tableData = await this.$api.get(this.$props.api, errorContext);
-
-            if (this.$utils.unArray(path) !== '') {
+        fetchTableItems() {
+            const setup = (data) => {
+                /* move data pointer to actual data */
+                const path = this.$props.arrayData.split('.');
                 for (let i = 0; i < path.length; i++) {
-                    if (tableData[path[i]]) {
-                        tableData = tableData[path[i]];
-                    } else {
-                        tableData = null;
-                        break;
+                    if (path[i].length > 0) {
+                        if (data[path[i]])
+                            data = data[path[i]];
+                        else
+                            throw Error('Failed to resolve data path');
                     }
                 }
-                if (tableData === []) {
-                    this.$ev.$emit('error', 'Cannot render table',
-                        'Error occurs in data path');
-                }
+                /* need an array */
+                if (!Array.isArray(data))
+                    throw Error('Data is not an array');
+
+                this.tableItems = data;
             }
-            this.tableItems = tableData;
-            this.isLoading = false;
+
+            this.isLoading = true;
+            this.$api.axiosData(this.$props.api)
+                .then((data) => {
+                    try { setup(data) }
+                    catch(e) { this.$ev.$emit('error', e, 'Cannot render table'); }
+                })
+                .catch(() => { /* notified by axios interceptor */ })
+                .finally(() => { this.isLoading = false; });
         },
         /**
          * Get a class name depending an the item
