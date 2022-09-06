@@ -236,7 +236,8 @@ export default {
             // Run custom processing of headers
             this.customHeadersComputation(headers);
 
-            // Set up columns and potentially discard hidden ones (splice), hence the reverse loop
+            // Set up columns and potentially discard hidden ones (splice),
+            // hence the reverse loop
             let i = headers.length;
             while (i--) {
                 const header = headers[i];
