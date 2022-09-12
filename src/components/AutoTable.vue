@@ -363,7 +363,7 @@ export default {
         },
     },
     mounted() {
-        this.setTableHeight();
+        this.$nextTick(() => this.setTableHeight());
         window.addEventListener('resize', this.setTableHeight);
     },
     destroyed() {
