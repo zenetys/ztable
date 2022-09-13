@@ -14,10 +14,23 @@
             disable-sort
             mobile-breakpoint="0"
             :disable-pagination="!isPaginated"
-            :hide-default-footer="!isPaginated">
+            :hide-default-footer="!isPaginated"
+            :loading="isLoading"
+        >
             <template v-slot:body="{ items, headers }">
                 <tbody>
-                    <tr v-for="(item, itemIndex) in items" :key="itemIndex" :class="getRowClass(item)">
+                    <tr
+                        v-if="!isLoading && (!items || items.length == 0)"
+                        class="v-data-table__empty-wrapper"
+                    >
+                        <td :colspan="headers.length">No data</td>
+                    </tr>
+                    <tr
+                        v-else
+                        v-for="(item, itemIndex) in items"
+                        :key="itemIndex"
+                        :class="getRowClass(item)"
+                    >
                         <td
                             v-for="(header, headerIndex) in headers"
                             :key="headerIndex"
@@ -46,9 +59,12 @@
             </template>
         </v-data-table>
 
-        <v-overlay :absolute="true" :opacity="0.5" color="#ffffff" :value="isLoading">
-            <v-progress-circular indeterminate size="64" color="#a2a2a2"></v-progress-circular>
-        </v-overlay>
+        <v-overlay
+            :value="isLoading"
+            :absolute="true"
+            :opacity="0.3"
+            color="#ffffff"
+        />
     </v-card>
 </template>
 
@@ -66,6 +82,12 @@ tbody .v-data-table__divider span {
         padding-left: 6px !important;
         background-color: #fcfcfc !important;
         border-top: thin solid rgba(0, 0, 0, 0.02);
+    }
+
+    thead {
+        .v-progress-linear {
+            height: 2px !important;
+        }
     }
 
     tbody {
@@ -109,6 +131,10 @@ tbody .v-data-table__divider span {
 
         tr:hover:not(.v-data-table__expanded__content) {
             filter: grayscale(10%) brightness(95%);
+        }
+
+        .v-data-table__empty-wrapper {
+            text-align: left;
         }
     }
 }
@@ -181,6 +207,9 @@ export default {
          * Headers extracted from table content and formatted
          */
         headers() {
+            if (!this.tableItems || this.tableItems.length == 0)
+                return [{}]; /* no data */
+
             const headers = [];
 
             // Store every unique header key
@@ -262,6 +291,15 @@ export default {
                     throw Error('Data is not an array');
 
                 this.tableItems = data;
+            }
+
+            /* it starts here */
+            console.log('AutoTable: fetchTableItems: $props.api =', this.$props.api);
+
+            if (!this.$props.api) {
+                console.log('AutoTable: fetchTableItems: invalid url, set no data');
+                this.tableItems = [];
+                return;
             }
 
             this.isLoading = true;
