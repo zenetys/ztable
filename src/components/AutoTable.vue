@@ -210,8 +210,8 @@ export default {
                     continue;
                 }
 
-                header.text =
-                    header.value === 'flag' ? '' : header.value.charAt(0).toUpperCase() + header.value.slice(1);
+                header.text ??= columnDefinition.label
+                    ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
                 header.divider = true;
                 header.columnDefinition = columnDefinition;
             }
