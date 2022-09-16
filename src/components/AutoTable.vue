@@ -137,6 +137,18 @@ tbody .v-data-table__divider span {
             text-align: left;
         }
     }
+
+    .v-data-footer__select .v-select {
+        margin-top: 6px;
+        margin-bottom: 5px;
+
+        .v-input__slot:before {
+            bottom: 4px;
+        }
+        .v-input__slot:after {
+            bottom: 4px;
+        }
+    }
 }
 </style>
 
