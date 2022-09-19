@@ -262,7 +262,8 @@ export default {
                     }
                 }
                 if (tableData === []) {
-                    this.$emit('error', 'Error occurs in data path.');
+                    this.$ev.$emit('error', 'Cannot render table',
+                        'Error occurs in data path');
                 }
             }
             this.tableItems = tableData;
