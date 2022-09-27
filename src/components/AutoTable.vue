@@ -47,6 +47,17 @@
                                 :style="header.columnDefinition.getStyle(item[header.value], item)"
                                 v-html="formatResult"></span>
                             <span
+                                v-else-if="typeof header.columnDefinition.slotName === 'string'"
+                                :title="header.columnDefinition.getTooltip(item[header.value], item)"
+                                :style="header.columnDefinition.getStyle(item[header.value], item)"
+                                >
+                                <slot
+                                    :name="header.columnDefinition.slotName"
+                                    v-bind:value="item[header.value]"
+                                    v-bind:item="item"
+                                />
+                            </span>
+                            <span
                                 v-else
                                 :title="header.columnDefinition.getTooltip(item[header.value], item)"
                                 :style="header.columnDefinition.getStyle(item[header.value], item)"
