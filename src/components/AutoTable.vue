@@ -156,8 +156,6 @@ tbody .v-data-table__divider span {
 </style>
 
 <script>
-import { VDataTable } from 'vuetify/lib';
-
 const defaultColumnDefinition = {
     format: (v) => v,
     getStyle: () => '',
@@ -213,9 +211,6 @@ export default {
             type: Boolean,
             default: true,
         },
-    },
-    components: {
-        VDataTable,
     },
     computed: {
         /**
