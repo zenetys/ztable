@@ -30,6 +30,7 @@
                         v-else
                         v-for="(item, itemIndex) in items"
                         :key="itemIndex"
+                        v-on="itemClick ? { click: (ev) => itemClick(item, ev) } : {}"
                         :class="getRowClass(item)"
                     >
                         <td
@@ -238,6 +239,11 @@ export default {
         itemClass: {
             type: [String, Function],
             default: () => '',
+        },
+
+        itemClick: {
+            type: Function,
+            default: undefined,
         },
         customHeadersComputation: {
             type: Function,
