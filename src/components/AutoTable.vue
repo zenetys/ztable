@@ -204,7 +204,7 @@ export default {
         },
         api: {
             type: [String, Promise],
-            required: true,
+            required: false,
         },
         arrayData: {
             type: String,
