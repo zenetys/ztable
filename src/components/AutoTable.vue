@@ -87,6 +87,12 @@ tbody .v-data-table__divider span {
         border-top: thin solid rgba(0, 0, 0, 0.02);
     }
 
+    thead, tbody {
+        .v-data-table__divider:last-child {
+            border-right-style: none;
+        }
+    }
+
     thead {
         .v-progress-linear {
             height: 2px !important;
