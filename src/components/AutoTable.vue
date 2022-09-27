@@ -69,6 +69,9 @@
 </template>
 
 <style scoped lang="scss">
+/* XXX Style needs review and cleanup! At the moment, it is too difficult
+ * XXX to override table style without using !important. */
+
 .auto-table * {
     font-size: 12.8px;
 }
