@@ -1,11 +1,11 @@
 <template>
-    <v-card>
+    <v-card class="elevation-0">
         <v-data-table
             :id="id"
             :headers="headers"
             :items="formattedTableItems"
             :search="search"
-            class="auto-table elevation-0"
+            class="auto-table"
             :item-class="itemClass"
             dense
             item-key="id"
