@@ -95,6 +95,7 @@ tbody .v-data-table__divider span {
 
     tbody {
         .v-data-table__divider {
+            border-bottom: thin solid rgba(0, 0, 0, 0.12);
             padding: 1px 6px !important;
             height: auto !important;
             /* position relative needed for the copy button icon */
@@ -139,6 +140,10 @@ tbody .v-data-table__divider span {
         .v-data-table__empty-wrapper {
             text-align: left;
         }
+    }
+
+    .auto-table.v-data-table .v-data-footer {
+        border-top-style: none;
     }
 
     .v-data-footer__select .v-select {
