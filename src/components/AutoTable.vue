@@ -20,11 +20,17 @@
         >
             <template v-slot:body="{ items, headers }">
                 <tbody>
-                    <tr
-                        v-if="!isLoading && (!items || items.length == 0)"
-                        class="v-data-table__empty-wrapper"
-                    >
-                        <td :colspan="headers.length">No data</td>
+                    <tr v-if="error" class="v-data-table__empty-wrapper">
+                        <td :colspan="headers.length" class="pt-3 red--text">
+                            <div>An error has occurred!</div>
+                            <div>{{ error.message }}</div>
+                        </td>
+                    </tr>
+                    <tr v-else-if="isLoading" class="v-data-table__empty-wrapper">
+                        <td :colspan="headers.length" class="pt-3">Loading...</td>
+                    </tr>
+                    <tr v-else-if="items && items.length == 0" class="v-data-table__empty-wrapper">
+                        <td :colspan="headers.length" class="pt-3">No data</td>
                     </tr>
                     <tr
                         v-else
@@ -184,6 +190,8 @@ tbody .v-data-table__divider span {
 </style>
 
 <script>
+import axios from 'axios';
+
 const defaultColumnDefinition = {
     format: (v) => v,
     getStyle: () => '',
@@ -310,10 +318,11 @@ export default {
     },
     data() {
         return {
-            tableItems: [],
+            tableItems: undefined,
             tableHeight: '',
             isLoading: false,
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
+            error: undefined,
         };
     },
     watch: {
@@ -359,16 +368,14 @@ export default {
             }
 
             this.isLoading = true;
+            this.error = undefined;
             const promise = this.$props.api instanceof Promise
-                ? this.$props.api
-                : this.$api.axiosData(this.$props.api);
+                ? this.$props.api /* assume Promise<AxiosResponse|Error> */
+                : axios(this.$props.api);
 
             promise
-                .then((data) => {
-                    try { setup(data) }
-                    catch(e) { this.$ev.$emit('error', e, 'Cannot render table'); }
-                })
-                .catch(() => { /* notified by axios interceptor */ })
+                .then((response) => setup(response.data))
+                .catch((e) => { this.error = e; })
                 .finally(() => { this.isLoading = false; });
         },
         /**
