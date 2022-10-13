@@ -131,8 +131,8 @@ export function formatContentForSubLinks(value, key, index = null) {
 
     if (key === '__index') {
         /* For the index header, generate a simple link to the table item */
-        const itemPath = `${DataManager.config.dataPath}.${index}`;
-        const url = generateUrlFromPath(itemPath);
+        const itemPath = DataManager.config.dataPath;
+        const url = generateUrlFromPath(itemPath ? `${itemPath}.${index}` : `${index}`);
         const link = `<a href="${url}" title="Open table item">${index}</a>`;
 
         contentValue.isHtml = true;
