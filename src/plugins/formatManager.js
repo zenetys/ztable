@@ -143,7 +143,7 @@ export function formatContentForSubLinks(value, key, index = null) {
         const valueType = Array.isArray(value) && value.length > 0 ? 'array' : 'object';
 
         contentValue.isHtml = true;
-        contentValue.value = generateLinkToSubPath(valueType, key, index);
+        contentValue.value = generateLinkToSubPath(valueType, key, value, index);
         contentValue.text = valueType;
     } else {
         contentValue.value = value;

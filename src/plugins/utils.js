@@ -7,19 +7,49 @@ import Router from '@/router';
  * @param {string} index the  index of the data we are currently viewing if in an array.
  * @returns {string} the HTML link to navigate to the updated path.
  */
-export function generateLinkToSubPath(type, key, index = null) {
+export function generateLinkToSubPath(type, key, value, index = null) {
+
+    function stringify(value) {
+        let output = '';
+
+        if (Array.isArray(value)) {
+            for (const inc in value) {
+                if (limit == 0)
+                    return '[' + output + (output ? ',' : '') + '...' + ']';
+                output += (output ? ',' : '');
+                output += stringify(value[inc]);
+            }
+            return '[' + output + ']';
+        }
+        else if (typeof value === 'object') {
+            for (const key in value) {
+                if (limit == 0)
+                    return '{' + output + (output ? ',' : '') + '...' + '}';
+                output += ( output ? ',' : '' ) + `"${key}":`;
+                output += stringify(value[key]);
+            }
+            return '{' + output + '}';
+        }
+        limit--;
+        return JSON.stringify(value);
+    }
+
     const route = Router.currentRoute;
 
     /* Updating query params with the new path parameter */
     let newPath = route.query?.path;
     newPath = route.query.path ? route.query.path + '.' : '';
     newPath += index !== null ? `${index}.${key}` : `${key}`;
+    let label = '';
+    let limit = 10;
 
-    const label = type === 'object' ? 'Object' : 'Array';
+    if (['array', 'object'].includes(type)) {
+        label = stringify(value);
+    }
 
     const url = generateUrlFromPath(newPath);
-
-    return `<a href="${url}" title="Open sub-level">${label}</a>`;
+    const labelp = label.replace(/"/g,'&quot;');
+    return `<a href="${url}" title="${labelp}" class="__sub-level-label">${label}</a>`;
 }
 
 /**
