@@ -45,19 +45,28 @@
                             :title="header.columnDefinition.getTitle(item)"
                             :class="getHeaderClassForItem(header, item)"
                             :_call_format_only_once="(() => {
-                                formatResult = header.columnDefinition.format(item[header.value], item);
+                                formatResult = header.columnDefinition.formatText(item[header.value], item);
                             })()"
                         >
                             <span
                                 v-if="header.columnDefinition.isHtml"
-                                :title="header.columnDefinition.getTooltip(item[header.value], item)"
-                                :style="header.columnDefinition.getStyle(item[header.value], item)"
-                                v-html="formatResult"></span>
+                                :title="
+                                    typeof header.columnDefinition.tooltip === 'function'
+                                        ? header.columnDefinition.tooltip(item[header.value], item)
+                                        : header.columnDefinition.tooltip
+                                "
+                                :style="header.columnDefinition.cssStyle(item[header.value], item)"
+                                v-html="header.columnDefinition.formatHtml(item[header.value], item)"
+                            ></span>
                             <span
                                 v-else-if="typeof header.columnDefinition.slotName === 'string'"
-                                :title="header.columnDefinition.getTooltip(item[header.value], item)"
-                                :style="header.columnDefinition.getStyle(item[header.value], item)"
-                                >
+                                :title="
+                                    typeof header.columnDefinition.tooltip === 'function'
+                                        ? header.columnDefinition.tooltip(item[header.value], item)
+                                        : header.columnDefinition.tooltip
+                                "
+                                :style="header.columnDefinition.cssStyle(item[header.value], item)"
+                            >
                                 <slot
                                     :name="header.columnDefinition.slotName"
                                     v-bind:value="item[header.value]"
@@ -66,14 +75,18 @@
                             </span>
                             <span
                                 v-else
-                                :title="header.columnDefinition.getTooltip(item[header.value], item)"
-                                :style="header.columnDefinition.getStyle(item[header.value], item)"
-                                >{{ formatResult }}</span
-                            >
+                                :title="
+                                    typeof header.columnDefinition.tooltip === 'function'
+                                        ? header.columnDefinition.tooltip(item[header.value], item)
+                                        : header.columnDefinition.tooltip
+                                "
+                                :style="header.columnDefinition.cssStyle(item[header.value], item)"
+                            >{{ formatResult }}</span>
                             <span
                                 v-if="activeCopyCellContent && formatResult"
                                 class="cp-span mdi mdi-content-copy"
-                                @click="copyCellContent(id, headerIndex, itemIndex, $event)">
+                                @click="copyCellContent(id, headerIndex, itemIndex, $event)"
+                            >
                                 <span class="cell-copied-tooltip">Copied!</span>
                             </span>
                         </td>
@@ -193,76 +206,59 @@ tbody .v-data-table__divider span {
 import axios from 'axios';
 
 const defaultColumnDefinition = {
-    format: (v) => v,
-    getStyle: () => '',
-    getTooltip: () => '',
-    isHtml: false,
-    hidden: false,
-    getClass: () => '',
+    formatHtml: (value, item) => this.formatText(value, item),
+    formatText: (value) => value,
+    tooltip: () => '',
     getTitle: () => '',
+    isHtml: false,
+    enabled: true,
+    cssClass: () => '',
+    cssStyle: () => '',
     order: 999,
 };
+
+export function Config(params) {
+    this.id = params.id || 'autotable';
+    this.api = params.api;
+    this.height = params.height;
+    this.itemClass = params.itemClass;
+    this.clickable = params.clickable;
+    this.copyable = params.copyable;
+    this.paginated = params.paginated;
+    this.heightOffsets = params.heightOffsets;
+    this.customHeadersComputation = params.customHeadersComputation;
+    this.search = params.search;
+    this.dataReady = params.dataReady || [];
+    this.columns = params.columns;
+    this.path = params.path || '';
+}
 
 export default {
     name: 'AutoTable',
     props: {
-        id: {
-            type: String,
-            default: 'auto-table',
-        },
-        api: {
-            type: [String, Promise],
-            required: false,
-        },
-        arrayData: {
-            type: String,
-            default: '',
-        },
-        search: {
-            type: String,
-            default: undefined,
-        },
-        columnDefinition: {
-            type: Object,
-            default: () => ({}),
-        },
-        onDataReadySync: {
-            type: Array, /* of Function */
-            default: () => [],
-        },
-        isPaginated: {
-            type: Boolean,
-            default: false,
-        },
-        height: {
-            /* type String, Number, Function or undefined */
-            type: [String, Number],
-            default: 'auto',
-        },
-        heightOffsets: {
-            type: Array,
-            default: () => [],
-            /* array of dom ids to substract of +/- numbers */
-        },
-        itemClass: {
-            type: [String, Function],
-            default: () => '',
-        },
-
-        itemClick: {
-            type: Function,
-            default: undefined,
-        },
-        customHeadersComputation: {
-            type: Function,
-            default: () => ({}),
-        },
-        activeCopyCellContent: {
-            type: Boolean,
-            default: true,
+        config: {
+            type: Config,
         },
     },
     computed: {
+        id() {
+            return this.$props.config.id || 'auto-table';
+        },
+        isPaginated() {
+            return this.$props.config.paginated ? true : false;
+        },
+        search() {
+            return this.$props.config.search || '';
+        },
+        itemClass() {
+            return this.$props.config.itemClass || '';
+        },
+        itemClick() {
+            return this.$props.config.clickable || null;
+        },
+        activeCopyCellContent() {
+            return this.$props.config.copyable || false;
+        },
         /**
          * Headers extracted from table content and formatted
          */
@@ -282,7 +278,8 @@ export default {
             });
 
             // Run custom processing of headers
-            this.customHeadersComputation(headers);
+            if (typeof this.$props.config.customHeadersComputation === 'function')
+                this.$props.config.customHeadersComputation(headers);
 
             // Set up columns and potentially discard hidden ones (splice),
             // hence the reverse loop
@@ -292,10 +289,10 @@ export default {
                 const columnDefinition = Object.assign(
                     {},
                     defaultColumnDefinition,
-                    this.$props.columnDefinition[header.value]
+                    this.$props.config.columns[header.value]
                 );
 
-                if (columnDefinition.hidden) {
+                if (!columnDefinition.enabled) {
                     headers.splice(i, 1);
                     continue;
                 }
@@ -326,7 +323,7 @@ export default {
         };
     },
     watch: {
-        api: {
+        'config.api': {
             immediate: true,
             handler() {
                 this.fetchTableItems();
@@ -340,7 +337,7 @@ export default {
         fetchTableItems() {
             const setup = (data) => {
                 /* move data pointer to actual data */
-                const path = this.$props.arrayData.split('.');
+                const path = this.$props.config.path.split('.');
                 for (let i = 0; i < path.length; i++) {
                     if (path[i].length > 0) {
                         if (data[path[i]])
@@ -353,15 +350,17 @@ export default {
                 if (!Array.isArray(data))
                     throw Error('Data is not an array');
 
-                for (let cb of this.$props.onDataReadySync)
+                for (let cb of this.$props.config.dataReady)
                     cb(data);
                 this.tableItems = data;
             }
 
-            /* it starts here */
-            console.log('AutoTable: fetchTableItems: $props.api =', this.$props.api);
+            const api = this.$props.config.api;
 
-            if (!this.$props.api) {
+            /* it starts here */
+            console.log('AutoTable: fetchTableItems: $props.config.api =', api);
+
+            if (!api) {
                 console.log('AutoTable: fetchTableItems: invalid url, set no data');
                 this.tableItems = [];
                 return;
@@ -369,13 +368,13 @@ export default {
 
             this.isLoading = true;
             this.error = undefined;
-            const promise = this.$props.api instanceof Promise
-                ? this.$props.api /* assume Promise<AxiosResponse|Error> */
-                : axios(this.$props.api);
+
+            /* api is Promise<AxiasResponse|Error> or string-url */
+            const promise = api instanceof Promise ? api : axios(api);
 
             promise
                 .then((response) => setup(response.data))
-                .catch((e) => { this.error = e; })
+                .catch((e) => { this.error = e; console.error(e); })
                 .finally(() => { this.isLoading = false; });
         },
         /**
@@ -384,7 +383,8 @@ export default {
          * @returns {string} - The class name
          */
         getRowClass(item) {
-            return typeof this.itemClass === 'function' ? this.itemClass(item) : this.itemClass;
+            const itemClass = this.$props.config.itemClass;
+            return typeof itemClass === 'function' ? itemClass(item) : (itemClass || '');
         },
         /**
          * Get header classes for a provided item
@@ -393,16 +393,18 @@ export default {
          * @returns {string} - The header classes
          */
         getHeaderClassForItem(header, tableItem) {
-            return header.columnDefinition.getClass(tableItem) + ' v-data-table__divider col_' + header.value;
+            return header.columnDefinition.cssClass(tableItem) + ' v-data-table__divider col_' + header.value;
         },
         /**
          * Set the height of the table
          */
         setTableHeight() {
-            if (this.$props.height === 'auto') {
+            const height = this.$props.config.height;
+            if (height === 'auto') {
                 this.tableHeight = this.computeAutoTableHeight();
-            } else if (this.$props.height) {
-                this.tableHeight = this.$props.height;
+            }
+            else if (height) {
+                this.tableHeight = height;
             }
         },
         /**
@@ -411,7 +413,8 @@ export default {
          */
         computeAutoTableHeight() {
             let tableHeight = 0;
-            const table = document.getElementById(this.id);
+            const id = this.id;
+            const table = document.getElementById(id);
 
             if (table) {
                 const tableFooterElement = table.getElementsByClassName('v-data-footer');
@@ -419,18 +422,20 @@ export default {
 
                 if (table.parentElement && table.parentElement.style.height !== '') {
                     tableHeight += table.parentElement.style.height;
-                } else {
+                }
+                else {
                     const tableRect = table.getBoundingClientRect();
                     tableHeight += window.innerHeight - tableRect.top;
                 }
 
                 tableHeight -= footerHeight;
 
-                if (this.heightOffsets) {
-                    this.heightOffsets.forEach((offset) => {
+                if (this.$props.config.heightOffsets) {
+                    this.$props.config.heightOffsets.forEach((offset) => {
                         if (typeof offset === 'number') {
                             tableHeight += offset;
-                        } else {
+                        }
+                        else {
                             const element = document.getElementById(offset);
 
                             if (element) {
