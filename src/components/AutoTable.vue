@@ -16,8 +16,31 @@
             mobile-breakpoint="0"
             :disable-pagination="!isPaginated"
             :hide-default-footer="!isPaginated"
+            :hide-default-header="true"
             :loading="isLoading"
         >
+            <template v-slot:header="{ props: { headers } }">
+                <thead id="autotable_header">
+                    <tr v-if="headers.length > 0">
+                        <th
+                            class="sizable v-data-table__divider"
+                            :class="'header_' + header.value"
+                            v-for="header in headers"
+                            :key="header.text">
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on }">
+                                    <span v-on="on">{{header.text}}</span>
+                                </template>
+                                <span>{{header.text}}</span>
+                            </v-tooltip>
+                        </th>
+                    </tr>
+                    <tr v-else>
+                        <th></th>
+                    </tr>
+                </thead>
+            </template>
+
             <template v-slot:body="{ items, headers }">
                 <tbody>
                     <tr v-if="error" class="v-data-table__empty-wrapper">
@@ -123,6 +146,11 @@ tbody .v-data-table__divider span {
         border-top: thin solid rgba(0, 0, 0, 0.02);
     }
 
+    .v-progress-linear--absolute {
+        left: 0;
+        z-index: 1;
+    }
+
     thead, tbody {
         .v-data-table__divider:last-child {
             border-right-style: none;
@@ -199,6 +227,11 @@ tbody .v-data-table__divider span {
             bottom: 4px;
         }
     }
+}
+
+#autotable_header {
+    background-color: #fcfcfc !important;
+    height: 32px !important;
 }
 </style>
 
