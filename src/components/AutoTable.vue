@@ -295,49 +295,8 @@ export default {
         /**
          * Headers extracted from table content and formatted
          */
-        headers() {
-            if (!this.tableItems || this.tableItems.length == 0)
-                return [{}]; /* no data */
-
-            const headers = [];
-
-            // Store every unique header key
-            this.tableItems?.forEach((item) => {
-                Object.keys(item).forEach((key) => {
-                    if (!headers.some((header) => header.value === key)) {
-                        headers.push({ value: key });
-                    }
-                });
-            });
-
-            // Run custom processing of headers
-            if (typeof this.$props.config.customHeadersComputation === 'function')
-                this.$props.config.customHeadersComputation(headers);
-
-            // Set up columns and potentially discard hidden ones (splice),
-            // hence the reverse loop
-            let i = headers.length;
-            while (i--) {
-                const header = headers[i];
-                const columnDefinition = Object.assign(
-                    {},
-                    defaultColumnDefinition,
-                    this.$props.config.columns[header.value]
-                );
-
-                if (!columnDefinition.enabled) {
-                    headers.splice(i, 1);
-                    continue;
-                }
-
-                header.text ??= columnDefinition.label
-                    ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
-                header.divider = true;
-                header.columnDefinition = columnDefinition;
-            }
-
-            headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
-            return headers;
+        computedHeaders() {
+            return this.headers;
         },
         formattedTableItems() {
             return this.tableItems?.map((item, index) => ({
@@ -353,6 +312,7 @@ export default {
             isLoading: false,
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             error: undefined,
+            headers: [],
         };
     },
     watch: {
@@ -360,6 +320,12 @@ export default {
             immediate: true,
             handler() {
                 this.fetchTableItems();
+            },
+        },
+        tableItems: {
+            immediate: true,
+            handler() {
+                this.extractHeadersFromData();
             },
         },
     },
@@ -503,6 +469,53 @@ export default {
                     }, 400);
                 }
             });
+        },
+        /**
+         * Extract headers from tableItems, run the processing of headers,
+         * and setup columns from the config in the headers
+         */
+        extractHeadersFromData() {
+            if (!this.tableItems || this.tableItems.length == 0)
+                return [{}]; /* no data */
+
+            const headers = [];
+
+            // Store every unique header key
+            this.tableItems?.forEach((item) => {
+                Object.keys(item).forEach((key) => {
+                    if (!headers.some((header) => header.value === key)) {
+                        headers.push({ value: key });
+                    }
+                });
+            });
+
+            // Run custom processing of headers
+            if (typeof this.$props.config.customHeadersComputation === 'function')
+                this.$props.config.customHeadersComputation(headers);
+
+            // Set up columns and potentially discard hidden ones (splice),
+            // hence the reverse loop
+            let i = headers.length;
+            while (i--) {
+                const header = headers[i];
+                const columnDefinition = Object.assign(
+                    {},
+                    defaultColumnDefinition,
+                    this.$props.config.columns[header.value]
+                );
+
+                if (!columnDefinition.enabled) {
+                    headers.splice(i, 1);
+                    continue;
+                }
+
+                header.text ??= columnDefinition.label
+                    ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
+                header.divider = true;
+                header.columnDefinition = columnDefinition;
+            }
+            headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
+            this.headers = headers;
         },
     },
     mounted() {
