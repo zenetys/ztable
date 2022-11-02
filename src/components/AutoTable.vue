@@ -22,12 +22,19 @@
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead id="autotable_header">
-                    <tr :class="hasFixedWidths ? '' : 'sizable'" v-if="headers.length > 0">
+                    <tr
+                        @dragstart="onDragStart"
+                        @dragover="onDragOver"
+                        @dragend="onDragEnd"
+                        :class="hasFixedWidths ? '' : 'sizable'"
+                        v-if="headers.length > 0"
+                    >
                         <th
                             class="v-data-table__divider"
                             :class="'header_' + header.value"
                             v-for="header in headers"
                             :key="header.value"
+                            :draggable="true"
                         >
                             <span>{{header.text}}</span>
                             <div @mousedown.stop="onResizeMouseDown" @click.stop class="resizeElement"></div>
@@ -249,6 +256,10 @@ tbody .v-data-table__divider span {
     }
 }
 
+.autotable-drag-border {
+    border-left: 1px dashed black;
+}
+
 #autotable_header {
     background-color: #fcfcfc !important;
     height: 32px !important;
@@ -333,7 +344,11 @@ export default {
             nextCol: undefined,
             pageX: undefined,
             curHeader: null,
-            hasFixedWidths: false
+            hasFixedWidths: false,
+            dragEl: null,
+            nextEl: null,
+            oldIndex: 0,
+            newIndex: 0,
         };
     },
     watch: {
@@ -540,13 +555,69 @@ export default {
             this.headers = headers;
         },
         /**
+         * The DragStart handler
+         * assignes the dragEl from the event.target.
+         * @param { Event } evt - the evenement from the dragstart event.
+         */
+        onDragStart(evt) {
+            this.dragEl = evt.target;
+
+            this.oldIndex = this.headers.findIndex((e) => {
+                return e.text === this.dragEl.textContent;
+            });
+
+            /* Limiting the movement type */
+            evt.dataTransfer.effectAllowed = 'move';
+        },
+        /**
+         * The DragOver handler
+         * only assignes the nextEl if the event.target is different from the dragEl.
+         * @param { Event } evt - the evenement from the dragover event.
+         */
+        onDragOver(evt) {
+            if (this.nextEl) {
+                this.nextEl.classList.remove('autotable-drag-border');
+            }
+            if (evt.target && evt.target !== this.dragEl && evt.target.nodeName == 'TH') {
+                this.nextEl = evt.target;
+                this.nextEl.classList.add('autotable-drag-border');
+            }
+        },
+        /**
+         * The DragEnd handler
+         * defines oldIndex and newIndex and perfoms the swap on new array, then saves it.
+         * @param { Event } evt - the evenement from the dragend event.
+         */
+        onDragEnd() {
+            if (!this.nextEl) {
+                return;
+            }
+
+            this.newIndex = this.headers.findIndex((e) => {
+                return e.text === this.nextEl.textContent;
+            });
+
+            if (this.nextEl) {
+                this.nextEl.classList.remove('autotable-drag-border');
+            }
+
+            if (this.newIndex !== this.oldIndex) {
+                /* Operate swap from oldIndex to newIndex */
+                this.headers.splice(
+                    this.newIndex < this.oldIndex ? this.newIndex : this.newIndex - 1,
+                    0,
+                    ...this.headers.splice(this.oldIndex, 1)
+                );
+            }
+        },
+        /**
          * Sets the mousedown listener for a th on mousedown
          * if mouse position is in the last 10px and sets the mousemove listener if so.
          * @param { HTMLElement } div - the div to set the listeners on.
          */
         onResizeMouseDown(e) {
             this.curCol = e.target.parentElement;
-            this.nextCol = e.target.parentElement.nextElementSibling
+            this.nextCol = e.target.parentElement.nextElementSibling;
             this.nextCol.draggable = false;
             this.curCol.draggable = false;
             this.curHeader = this.headers.find((e) => {
