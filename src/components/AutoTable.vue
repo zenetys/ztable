@@ -349,6 +349,7 @@ export default {
             nextEl: null,
             oldIndex: 0,
             newIndex: 0,
+            preferences: new Map(),
         };
     },
     watch: {
@@ -506,6 +507,15 @@ export default {
                 }
             });
         },
+        savePreferences() {
+            this.headers.forEach((header, i) => {
+                const data = {
+                    width: header.width || null,
+                    order: i,
+                };
+                this.preferences.set(header.value, data);
+            });
+        },
         /**
          * Extract headers from tableItems, run the processing of headers,
          * and setup columns from the config in the headers
@@ -534,6 +544,7 @@ export default {
             let i = headers.length;
             while (i--) {
                 const header = headers[i];
+                const preference = this.preferences.get(header.value);
                 const columnDefinition = Object.assign(
                     {},
                     defaultColumnDefinition,
@@ -550,8 +561,14 @@ export default {
                 header.divider = true;
                 header.columnDefinition = columnDefinition;
                 header.width  = 'auto';
+
+                if (preference) {
+                    header.width = preference.width;
+                    header.columnDefinition.order = preference.order;
+                }
             }
             headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
+            headers.map((el, i) => el.columnDefinition.order = el.columnDefinition.order === 999 ? i : el.columnDefinition.order);
             this.headers = headers;
         },
         /**
@@ -603,11 +620,7 @@ export default {
 
             if (this.newIndex !== this.oldIndex) {
                 /* Operate swap from oldIndex to newIndex */
-                this.headers.splice(
-                    this.newIndex < this.oldIndex ? this.newIndex : this.newIndex - 1,
-                    0,
-                    ...this.headers.splice(this.oldIndex, 1)
-                );
+                this.savePreferences();
             }
         },
         /**
