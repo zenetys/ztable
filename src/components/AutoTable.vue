@@ -6,6 +6,7 @@
             :items="formattedTableItems"
             :search="search"
             class="auto-table"
+            :class="hasFixedWidths ? 'fixedWidth' : ''"
             :item-class="itemClass"
             dense
             item-key="id"
@@ -21,18 +22,15 @@
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead id="autotable_header">
-                    <tr v-if="headers.length > 0">
+                    <tr :class="hasFixedWidths ? '' : 'sizable'" v-if="headers.length > 0">
                         <th
-                            class="sizable v-data-table__divider"
+                            class="v-data-table__divider"
                             :class="'header_' + header.value"
                             v-for="header in headers"
-                            :key="header.text">
-                            <v-tooltip top>
-                                <template v-slot:activator="{ on }">
-                                    <span v-on="on">{{header.text}}</span>
-                                </template>
-                                <span>{{header.text}}</span>
-                            </v-tooltip>
+                            :key="header.value"
+                        >
+                            <span>{{header.text}}</span>
+                            <div @mousedown.stop="onResizeMouseDown" @click.stop class="resizeElement"></div>
                         </th>
                     </tr>
                     <tr v-else>
@@ -61,6 +59,7 @@
                         :key="itemIndex"
                         v-on="itemClick ? { click: (ev) => itemClick(item, ev) } : {}"
                         :class="getRowClass(item)"
+                        class="col_size"
                     >
                         <td
                             v-for="(header, headerIndex) in headers"
@@ -130,6 +129,16 @@
 <style scoped lang="scss">
 /* XXX Style needs review and cleanup! At the moment, it is too difficult
  * XXX to override table style without using !important. */
+.resizeElement {
+    content: '';
+    cursor: w-resize;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 100%;
+    display: inline-block;
+}
 
 .auto-table * {
     font-size: 12.8px;
@@ -140,10 +149,21 @@ tbody .v-data-table__divider span {
 }
 
 ::v-deep {
+    .fixedWidth table {
+        width: auto;
+    }
+
     th {
         padding-left: 6px !important;
         background-color: #fcfcfc !important;
         border-top: thin solid rgba(0, 0, 0, 0.02);
+        & > span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+            width: 100%;
+        }
     }
 
     .v-progress-linear--absolute {
@@ -292,18 +312,13 @@ export default {
         activeCopyCellContent() {
             return this.$props.config.copyable || false;
         },
-        /**
-         * Headers extracted from table content and formatted
-         */
-        computedHeaders() {
-            return this.headers;
-        },
         formattedTableItems() {
             return this.tableItems?.map((item, index) => ({
                 id: index,
                 ...item,
             }));
         },
+
     },
     data() {
         return {
@@ -313,6 +328,12 @@ export default {
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             error: undefined,
             headers: [],
+            curCol: undefined,
+            curColWidth: undefined,
+            nextCol: undefined,
+            pageX: undefined,
+            curHeader: null,
+            hasFixedWidths: false
         };
     },
     watch: {
@@ -513,9 +534,86 @@ export default {
                     ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
                 header.divider = true;
                 header.columnDefinition = columnDefinition;
+                header.width  = 'auto';
             }
             headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
             this.headers = headers;
+        },
+        /**
+         * Sets the mousedown listener for a th on mousedown
+         * if mouse position is in the last 10px and sets the mousemove listener if so.
+         * @param { HTMLElement } div - the div to set the listeners on.
+         */
+        onResizeMouseDown(e) {
+            this.curCol = e.target.parentElement;
+            this.nextCol = e.target.parentElement.nextElementSibling
+            this.nextCol.draggable = false;
+            this.curCol.draggable = false;
+            this.curHeader = this.headers.find((e) => {
+                return e.text === this.curCol.textContent;
+            });
+            this.pageX = e.pageX;
+            this.curColWidth = this.curCol.offsetWidth;
+
+            window.addEventListener('mousemove', this.resizeCol, false);
+            window.addEventListener('mouseup', this.onResizeMouseUp, false);
+        },
+        /**
+         * Sets the new width if defined, and unsets related variables.
+         * @param { Event } evt - the evenement from the onmove event.
+         */
+        onResizeMouseUp(e) {
+            if (!this.curCol) {
+                return;
+            }
+
+            if (this.pageX && this.curHeader) {
+                this.curHeader.width = this.curColWidth + e.pageX - this.pageX;
+                this.hasFixedWidths = true;
+            }
+
+            /* Resets Variables for next run */
+            this.nextCol.draggable = true;
+            this.curCol.draggable = true;
+            this.nextCol = undefined;
+            this.curCol = undefined;
+            this.curHeader = null;
+            this.curColWidth = 0;
+            this.pageX = 0;
+
+            window.removeEventListener('mousemove', this.resizeCol, false);
+            window.removeEventListener('mouseup', this.onResizeMouseUp, false);
+        },
+        /**
+         * Calculates diff and the new width and sets it ont the html dom.
+         * @param { Event } evt - the evenement from the onmove event.
+         */
+        resizeCol(e) {
+            if (!this.curCol || !this.curHeader) {
+                return;
+            }
+
+            if (!this.hasFixedWidths) {
+                const elsHeader = document.querySelectorAll('#' + this.$props.config.id + ' th');
+                elsHeader.forEach((el, i) => {
+                    const width = el.offsetWidth;
+                    this.headers[i].width = width;
+
+                    el.style.width = width + 'px';
+                    el.style.maxWidth = width + 'px';
+                    el.style.minWidth = width + 'px';
+                });
+                this.hasFixedWidths = true;
+                return;
+            }
+            const diffX = e.pageX - this.pageX;
+            const width = this.curColWidth + diffX;
+
+            if (width > 20) {
+                this.curCol.style.width = width + 'px';
+                this.curCol.style.minWidth = width + 'px';
+                this.curCol.style.maxWidth = width + 'px';
+            }
         },
     },
     mounted() {
