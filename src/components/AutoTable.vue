@@ -349,7 +349,7 @@ export default {
             nextEl: null,
             oldIndex: 0,
             newIndex: 0,
-            preferences: new Map(),
+            preferences: {},
         };
     },
     watch: {
@@ -513,8 +513,9 @@ export default {
                     width: header.width || null,
                     order: i,
                 };
-                this.preferences.set(header.value, data);
+                this.preferences[header.value] = data;
             });
+            localStorage.setItem(this.$props.config.id, JSON.stringify(this.preferences));
         },
         /**
          * Extract headers from tableItems, run the processing of headers,
@@ -539,12 +540,17 @@ export default {
             if (typeof this.$props.config.customHeadersComputation === 'function')
                 this.$props.config.customHeadersComputation(headers);
 
+            if (localStorage.getItem(this.$props.config.id)) {
+                const preferences = JSON.parse(localStorage.getItem(this.$props.config.id));
+                this.preferences = preferences;
+            }
+
             // Set up columns and potentially discard hidden ones (splice),
             // hence the reverse loop
             let i = headers.length;
             while (i--) {
                 const header = headers[i];
-                const preference = this.preferences.get(header.value);
+                const preference = this.preferences[header.value];
                 const columnDefinition = Object.assign(
                     {},
                     defaultColumnDefinition,
@@ -570,6 +576,9 @@ export default {
             headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
             headers.map((el, i) => el.columnDefinition.order = el.columnDefinition.order === 999 ? i : el.columnDefinition.order);
             this.headers = headers;
+            if (this.preferences.size > 0) {
+                this.hasFixedWidths = true;
+            }
         },
         /**
          * The DragStart handler
