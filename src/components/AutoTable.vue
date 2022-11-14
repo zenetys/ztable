@@ -20,19 +20,20 @@
             fixed-header
             :height="tableHeight"
             :footer-props="tableFooterProps"
-            disable-sort
             mobile-breakpoint="0"
             :disable-pagination="!isPaginated"
             :hide-default-footer="!isPaginated"
             :hide-default-header="true"
+            :custom-sort="customSort"
             :loading="isLoading"
+            :options="{ sortBy, sortDesc}"
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead id="autotable_header">
                     <tr
                         @dragstart="onDragStart"
                         @dragover="onDragOver"
-                        @dragend="onDragEnd"
+                        @dragend.stop="onDragEnd"
                         :class="hasFixedWidths ? '' : 'sizable'"
                         v-if="headers.length > 0"
                     >
@@ -42,8 +43,12 @@
                             v-for="header in headers"
                             :key="header.value"
                             :draggable="true"
+                            @click.stop="sortCol(header)"
                         >
-                            <span>{{header.text}}</span>
+                            <span>{{header.text}}<v-icon
+                                v-if="header.columnDefinition.sortable"
+                                style="margin-left: 1em"
+                            >mdi-arrow-{{ header.sortDesc ? 'up' : 'down'}}</v-icon></span>
                             <div @mousedown.stop="onResizeMouseDown" @click.stop class="resizeElement"></div>
                         </th>
                     </tr>
@@ -302,6 +307,7 @@ const defaultColumnDefinition = {
     cssClass: () => '',
     cssStyle: () => '',
     order: 999,
+    sortable: true,
 };
 
 export function Config(params) {
@@ -358,7 +364,6 @@ export default {
         computedHeaders() {
             return this.headers.filter((header) => header.columnDefinition.enabled);
         },
-
     },
     data() {
         return {
@@ -379,6 +384,9 @@ export default {
             oldIndex: 0,
             newIndex: 0,
             preferences: {},
+            sortableFunctions: {},
+            sortDesc: false,
+            sortBy: '',
         };
     },
     watch: {
@@ -542,6 +550,32 @@ export default {
                 }
             });
         },
+        sortCol(header) {
+            if (header.columnDefinition.sortable === false) {
+                return;
+            }
+            this.sortBy = header.value;
+            header.sortDesc = !header.sortDesc;
+            this.sortDesc = header.sortDesc;
+        },
+        customSort(items, sortBy, isDesc) {
+            function sortFunction(a, b, sortBy) {
+                if (a[sortBy] > b[sortBy] || a[sortBy] === null && b[sortBy] !== null) {
+                    return -1;
+                }
+                if (a[sortBy] < b[sortBy] || b[sortBy] === null && a[sortBy] !== null) {
+                    return 1;
+                }
+                // a must be equal to b
+                return 0;
+            }
+
+            const sort = this.sortableFunctions[sortBy] || sortFunction;
+            return items.sort((a, b) => {
+                const res = isDesc ? sort(a, b, sortBy) : sort(b, a, sortBy);
+                return res;
+            });
+        },
         savePreferences() {
             this.headers.forEach((header, i) => {
                 const data = {
@@ -613,6 +647,9 @@ export default {
                 header.divider = true;
                 header.columnDefinition = columnDefinition;
                 header.width  = 'auto';
+                if (typeof header.columnDefinition.sortable === "function") {
+                    this.sortableFunctions[header.value] = header.columnDefinition.sortable;
+                }
 
                 if (preference) {
                     header.width = preference.width;
