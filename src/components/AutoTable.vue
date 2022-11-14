@@ -1,8 +1,15 @@
 <template>
     <v-card class="elevation-0">
+        <AutoTableMenu
+            :items="headers"
+            :hasFixedWidths="hasFixedWidths"
+            @swapped="swapHeadersPositions($event)"
+            @toggle="changeFixedWidth($event)"
+        />
+
         <v-data-table
             :id="id"
-            :headers="headers"
+            :headers="computedHeaders"
             :items="formattedTableItems"
             :search="search"
             class="auto-table"
@@ -156,8 +163,13 @@ tbody .v-data-table__divider span {
 }
 
 ::v-deep {
+    .v-menu__content * {
+        padding: 0;
+    }
+
     .fixedWidth table {
         width: auto;
+        position: relative;
     }
 
     th {
@@ -260,14 +272,25 @@ tbody .v-data-table__divider span {
     border-left: 1px dashed black;
 }
 
+#__column-options-button {
+    z-index: 7;
+    right: 20px;
+}
+
 #autotable_header {
     background-color: #fcfcfc !important;
     height: 32px !important;
+}
+
+.__column-options-button--offset-top {
+    top: 0px;
 }
 </style>
 
 <script>
 import axios from 'axios';
+import AutoTableMenu from '@/components/AutoTableMenu.vue';
+
 
 const defaultColumnDefinition = {
     formatHtml: (value, item) => this.formatText(value, item),
@@ -299,6 +322,9 @@ export function Config(params) {
 
 export default {
     name: 'AutoTable',
+    components: {
+        AutoTableMenu,
+    },
     props: {
         config: {
             type: Config,
@@ -328,6 +354,9 @@ export default {
                 id: index,
                 ...item,
             }));
+        },
+        computedHeaders() {
+            return this.headers.filter((header) => header.columnDefinition.enabled);
         },
 
     },
@@ -364,6 +393,12 @@ export default {
             handler() {
                 this.extractHeadersFromData();
             },
+        },
+        headers: {
+            handler() {
+                this.savePreferences();
+            },
+            deep: true,
         },
     },
     methods: {
@@ -511,11 +546,27 @@ export default {
             this.headers.forEach((header, i) => {
                 const data = {
                     width: header.width || null,
+                    enabled: header.columnDefinition.enabled,
                     order: i,
                 };
                 this.preferences[header.value] = data;
             });
             localStorage.setItem(this.$props.config.id, JSON.stringify(this.preferences));
+        },
+        changeFixedWidth($event) {
+            this.hasFixedWidths = $event;
+            this.preferences['hasFixedWidths'] = $event;
+            this.savePreferences()
+        },
+        /**
+         * Swap two headers positions in the table order and save the config in local storage.
+         * @param {number} position1 - the position of the first header
+         * @param {number} position2 - the position of the second header
+         */
+        swapHeadersPositions(e) {
+            let {oldIndex, newIndex} = e
+            newIndex = newIndex < oldIndex ? newIndex : newIndex - 1
+            this.headers.splice(newIndex, 0, ...this.headers.splice(oldIndex, 1));
         },
         /**
          * Extract headers from tableItems, run the processing of headers,
@@ -557,11 +608,6 @@ export default {
                     this.$props.config.columns[header.value]
                 );
 
-                if (!columnDefinition.enabled) {
-                    headers.splice(i, 1);
-                    continue;
-                }
-
                 header.text ??= columnDefinition.label
                     ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
                 header.divider = true;
@@ -571,12 +617,14 @@ export default {
                 if (preference) {
                     header.width = preference.width;
                     header.columnDefinition.order = preference.order;
+                    if (typeof preference.enabled === "boolean")
+                        header.columnDefinition.enabled = preference.enabled;
                 }
             }
             headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
             headers.map((el, i) => el.columnDefinition.order = el.columnDefinition.order === 999 ? i : el.columnDefinition.order);
             this.headers = headers;
-            if (this.preferences.size > 0) {
+            if (this.preferences['hasFixedWidths']) {
                 this.hasFixedWidths = true;
             }
         },
@@ -629,7 +677,11 @@ export default {
 
             if (this.newIndex !== this.oldIndex) {
                 /* Operate swap from oldIndex to newIndex */
-                this.savePreferences();
+                this.headers.splice(
+                    this.newIndex < this.oldIndex ? this.newIndex : this.newIndex - 1,
+                    0,
+                    ...this.headers.splice(this.oldIndex, 1)
+                );
             }
         },
         /**
@@ -707,7 +759,7 @@ export default {
                 this.curCol.style.minWidth = width + 'px';
                 this.curCol.style.maxWidth = width + 'px';
             }
-        },
+        }
     },
     mounted() {
         this.$nextTick(() => this.setTableHeight());
