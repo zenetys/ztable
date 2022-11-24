@@ -1,23 +1,31 @@
 <template>
     <div class="menu">
-        <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                    elevation="0"
-                    color="primary"
-                    absolute
-                    x-small
-                    icon
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="enabled = !enabled"
-                    class="menu_icon"
-                >
-                    <v-icon>mdi-cog</v-icon>
-                </v-btn>
-            </template>
-            <span>Open columns settings</span>
-        </v-tooltip>
+    <v-tooltip top>
+         <template v-slot:activator="{ on, attrs }">
+            <v-btn
+                elevation="0"
+                absolute
+                small
+                v-bind="attrs"
+                v-on="on"
+                @click="enabled = !enabled"
+                class="menu_icon color-white"
+            >
+                <v-icon color="primary" small>mdi-cog</v-icon>
+            </v-btn>
+        </template>
+        <span style="font-size: 12px;">Open columns settings</span>
+    </v-tooltip>
+
+    <v-tooltip bottom>
+         <template v-slot:activator="{ on, attrs }">
+             <v-btn class="export_button color-white" small v-bind="attrs" v-on="on" @click="exportToCsv">
+                 <span class=""><v-icon color="primary" small >mdi-microsoft-excel</v-icon></span>
+             </v-btn>
+        </template>
+        <span style="font-size: 12px;">Export to csv</span>
+    </v-tooltip>
+
         <aside :class="enabled ? '' : 'hidden'" class="menu_modal" @dragstart="onDragStart" @dragover="onDragOver" @dragend="onDragEnd">
             <div class="flex justify-between menu_header">
                 <strong>Visible</strong>
@@ -52,13 +60,22 @@
 </template>
 
 <style scoped lang="scss">
+::v-deep {
+    .v-btn:not(.v-btn--round).v-size--small {
+        height: auto;
+        padding: 0.5em 0.75em;
+        min-width: 0!important;
+        box-shadow: none;
+        background: none;
+    }
+}
 .menu {
     position: relative
 }
 .menu_icon {
     position: absolute;
-    top: 5px;
-    right: 20px;
+    top: 2px;
+    right: 26px;
     z-index: 10;
 }
 .menu_modal {
@@ -79,6 +96,12 @@
 }
 .menu_item:not(:last-child) {
     margin-bottom: 0.25em;
+}
+.export_button {
+    position: absolute;
+    top: 2px;
+    right: 60px;
+    z-index: 10;
 }
 .flex {
     display: flex;
@@ -101,11 +124,13 @@
 .capitalize {
     text-transform: capitalize;
 }
+.color-white {
+    background-color: #fcfcfc!important;
+}
 .primary_button {
-    background-color: #0f6e84;
+    background-color: #3f51b5;
     color: #ffffff;
-    padding: 0.5em 1em;
-    margin-top: 0.5em;
+    padding: 0.25em 0.75em;
 }
 button,
 input {
@@ -135,8 +160,9 @@ export default {
     props: {
         items: [],
         hasFixedWidths: Boolean,
+        show: Boolean,
     },
-    emits: ['swapped', 'toggle'],
+    emits: ['swapped', 'toggle', 'export'],
     data() {
         return {
             enabled: false,
@@ -146,7 +172,17 @@ export default {
             dragEl: null,
         };
     },
+    watch: {
+        show: {
+            handler(newValue, oldValue) {
+                this.enabled = newValue === false ? false : oldValue;
+            },
+        },
+    },
     methods: {
+        exportToCsv() {
+            this.$emit('export');
+        },
         toggleFixedWidth(value) {
             if (this.$props.hasFixedWidths === value) {
                 return;
