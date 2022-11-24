@@ -1,12 +1,16 @@
 <template>
     <v-card class="elevation-0">
-        <AutoTableMenu
-            :items="headers"
-            :hasFixedWidths="hasFixedWidths"
-            @swapped="swapHeadersPositions($event)"
-            @toggle="changeFixedWidth($event)"
-        />
-
+        <div class="showIcons" @mouseover="showIcons = true" @mouseleave="showIcons = false">
+            <AutoTableMenu
+                :style="showIcons === true ? 'display: block' : 'display: none'"
+                :show="showIcons"
+                :items="headers"
+                :hasFixedWidths="hasFixedWidths"
+                @swapped="swapHeadersPositions($event)"
+                @toggle="changeFixedWidth($event)"
+                @export="exportToCsv(tableItems)"
+            />
+        </div>
         <v-data-table
             :id="id"
             :headers="computedHeaders"
@@ -146,6 +150,14 @@
 </template>
 
 <style scoped lang="scss">
+.showIcons {
+    width: 200px;
+    height: 50px;
+    position: absolute;
+    top: 0;
+    right: 15px;
+    z-index: 9;
+}
 /* XXX Style needs review and cleanup! At the moment, it is too difficult
  * XXX to override table style without using !important. */
 .resizeElement {
@@ -391,6 +403,7 @@ export default {
                 api: '',
                 height: 'auto',
             },
+            showIcons: false,
         };
     },
     watch: {
@@ -640,6 +653,43 @@ export default {
                 this.preferences[header.value] = data;
             });
             localStorage.setItem(this.tableConfig.id, JSON.stringify(this.preferences));
+        },
+        exportToCsv(data) {
+            const csv = [];
+            data.forEach((item, i) => {
+                const line = [];
+                this.headers.forEach(header => {
+                    let content = " ";
+
+                    content = (i != 0) ? header.columnDefinition.formatText(item[header.value], item) : header.value;
+
+                    if (header.columnDefinition.enabled === false) {
+                        return;
+                    }
+
+                    if (typeof content === 'string' && (content.includes('"') || content.includes(','))) {
+                        if (content.includes('"')) {
+                            content = content.replaceAll('"', '""');
+                        }
+                        content = '"' + content + '"';
+                    }
+
+                    line.push(content);
+                })
+                const str = line.join(",");
+                csv.push(str);
+            });
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            const date = new Date();
+            const title = `export-${date.toISOString().replace(/\D/g, '')}`;
+
+            a.setAttribute('href', url);
+            a.setAttribute('download', `${title}.csv`);
+            a.click();
         },
         changeFixedWidth($event) {
             this.hasFixedWidths = $event;
