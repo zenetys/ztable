@@ -8,27 +8,35 @@ import Router from '@/router';
  * @returns {string} the HTML link to navigate to the updated path.
  */
 export function generateLinkToSubPath(type, key, value, index = null) {
-
+    /**
+     * Recursively generate a string exposing the content of the data contained in an array or object.
+     * @recursive
+     * @param {Array, Object} value the data to expose.
+     * @returns {string} the stringified data.
+     */
     function stringify(value) {
         let output = '';
 
         if (Array.isArray(value)) {
+            // If the value is an array, we stringify each element of the array.
             for (const inc in value) {
-                if (limit == 0)
-                    return '[' + output + (output ? ',' : '') + '...' + ']';
-                output += (output ? ',' : '');
+                if (limit === 0) {
+                    return '[' + output + (output ? ', ' : '') + '...]';
+                }
+                output += output ? ', ' : '';
                 output += stringify(value[inc]);
             }
-            return '[' + output + ']';
-        }
-        else if (typeof value === 'object') {
+            return `[${output}]`;
+        } else if (typeof value === 'object') {
+            // If the value is an object, we stringify each key/value pair.
             for (const key in value) {
-                if (limit == 0)
-                    return '{' + output + (output ? ',' : '') + '...' + '}';
-                output += ( output ? ',' : '' ) + `"${key}":`;
+                if (limit === 0) {
+                    return '{' + output + (output ? ', ' : '') + '...}';
+                }
+                output += (output ? ', ' : '') + `"${key}": `;
                 output += stringify(value[key]);
             }
-            return '{' + output + '}';
+            return `{${output}}`;
         }
         limit--;
         return JSON.stringify(value);
@@ -43,12 +51,13 @@ export function generateLinkToSubPath(type, key, value, index = null) {
     let label = '';
     let limit = 10;
 
+    // If the subpath contains an array or object, stringify its value as the link label.
     if (['array', 'object'].includes(type)) {
         label = stringify(value);
     }
 
     const url = generateUrlFromPath(newPath);
-    const labelp = label.replace(/"/g,'&quot;');
+    const labelp = label.replace(/"/g, '&quot;');
     return `<a href="${url}" title="${labelp}" class="__sub-level-label">${label}</a>`;
 }
 
