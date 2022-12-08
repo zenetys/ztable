@@ -322,21 +322,21 @@ const defaultColumnDefinition = {
     sortable: true,
 };
 
-export function Config(params) {
-    this.id = params.id || 'autotable';
-    this.api = params.api;
-    this.height = params.height;
-    this.itemClass = params.itemClass;
-    this.clickable = params.clickable;
-    this.copyable = params.copyable;
-    this.paginated = params.paginated;
-    this.heightOffsets = params.heightOffsets;
-    this.customHeadersComputation = params.customHeadersComputation;
-    this.search = params.search;
-    this.dataReady = params.dataReady || [];
-    this.columns = params.columns;
-    this.path = params.path || '';
-}
+const defaultConfig = {
+    id: 'autotable',
+    api: undefined,
+    height: undefined,
+    itemClass: undefined,
+    clickable: undefined,
+    copyable: undefined,
+    paginated: undefined,
+    heightOffsets: undefined,
+    customHeadersComputation: undefined,
+    search: undefined,
+    dataReady: [],
+    columns: undefined,
+    path: '',
+};
 
 export default {
     name: 'AutoTable',
@@ -345,7 +345,7 @@ export default {
     },
     props: {
         config: {
-            type: [ Config, String ],
+            type: [ Object, String ],
         },
     },
     computed: {
@@ -482,7 +482,8 @@ export default {
         },
         async loadConfig() {
             if (typeof this.$props.config == "object") {
-                this.tableConfig = this.$props.config;
+                this.tableConfig = Object.assign({}, defaultConfig, this.$props.config);
+                console.log('AutoTable: tableConfig =', this.tableConfig);
                 return;
             }
 
@@ -517,7 +518,8 @@ export default {
                 });
             });
 
-            this.tableConfig = new Config(config);
+            this.tableConfig = Object.assign({}, defaultConfig, config);
+            console.log('AutoTable: tableConfig =', this.tableConfig);
         },
         async fetchConfig(url) {
             const res = await axios(url);
