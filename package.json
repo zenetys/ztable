@@ -1,80 +1,45 @@
 {
-  "name": "@zenetys/ztable",
-  "version": "0.1.25",
-  "author": "Jules KLU",
-  "email": "jklu@zenetys.com",
-  "url": "https://tools.zenetys.com/ztable/",
-  "description": "Vuetify based panel to represent any data array of objects",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/zenetys/ztable.git"
-  },
-  "license": "MIT",
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "lib": "vue-cli-service build --target lib --inline-vue --name z-table ./src/index.js"
-  },
-  "main": "dist/z-table.common.js",
-  "module": "dist/z-table.esm.js",
-  "unpkg": "dist/z-table.min.js",
-  "files": [
-    "dist/*",
-    "src/*",
-    "public/*",
-    "*.json",
-    "*.js"
-  ],
-  "dependencies": {
-    "@elastic/elasticsearch": "^7.9.1",
-    "@mdi/font": "^5.9.55",
-    "axios": "^0.27.0",
-    "chart.js": "^2.9.3",
-    "core-js": "^3.6.5",
-    "fs": "0.0.1-security",
-    "fs-extra": "^9.0.1",
-    "material-design-icons": "^3.0.1",
-    "node": "^14.13.1",
-    "sortablejs": "^1.12.0",
-    "split2": "^3.2.2",
-    "vue": "^2.6.14",
-    "vue-chartjs": "^3.5.1",
-    "vue-i18n": "^8.22.1",
-    "vue-router": "^3.2.0",
-    "vue-session": "^1.0.0",
-    "vue-uuid": "^2.1.0",
-    "vuetify": "^2.5.8"
-  },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-router": "^4.5.6",
-    "@vue/cli-service": "~4.5.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "sass": "~1.32.6",
-    "sass-loader": "^8.0.0",
-    "vue-template-compiler": "^2.6.14"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
+    "name": "@zenetys/ztable",
+    "version": "0.1.25",
+    "author": "Jules KLU",
+    "email": "jklu@zenetys.com",
+    "url": "https://tools.zenetys.com/ztable/",
+    "description": "Vuetify based panel to represent any data array of objects",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/zenetys/ztable.git"
     },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build --target lib --name z-table ./lib/index.js"
+    },
+    "main": "dist/z-table.common.js",
+    "module": "dist/z-table.esm.js",
+    "unpkg": "dist/z-table.min.js",
+    "cdn": "dist/z-table.min.js",
+    "browser": "dist/z-table.min.js",
+    "files": [
+        "dist",
+        "lib",
+        "LICENSE",
+        "README.md"
     ],
-    "parserOptions": {
-      "parser": "babel-eslint"
+    "dependencies": {
+        "axios": "^0.24.0",
+        "vue": "^2.6.11",
+        "vue-router": "^3.2.0",
+        "vue-uuid": "^2.1.0",
+        "@mdi/font": "^5.9.55",
+        "vuetify": "^2.5.8"
     },
-    "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "~4.5.0",
+        "@vue/cli-service": "~4.5.0",
+        "babel-eslint": "^10.1.0",
+        "css-loader": "^5.0.1",
+        "sass": "~1.32.0",
+        "sass-loader": "^10.0.0",
+        "vue-template-compiler": "^2.6.14"
+    }
 }
