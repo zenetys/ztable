@@ -11,28 +11,27 @@ You can represent automatically in a html table the "data" array in this json do
     "total": 12,
     "total_pages": 2,
     "data": [
-        {
-            "id": 1,
-            "name": "cerulean",
-            "year": 2000,
-        },
-        {
+    {
+        "id": 1,
+        "name": "cerulean",
+        "year": 2000,
+    },
+    {
         "id": 2,
         "name": "fuchsia rose",
         "year": 2001,
-        },
-        {
+    },
+    {
         "id": 3,
         "name": "true red",
         "year": 2002,
-        },
+    },
     ]
 }
 ```
 
 ## Properties
-* ```api```: The url of the api you want to get the data.
-* ```array_data```: The the depth of the array you want to get from the response. For example in the json above you must put: ```array_data="data"```.
+* ```config```: The config of the table.
 
 ## Usage
 ### Clone the projet
@@ -41,126 +40,134 @@ You can represent automatically in a html table the "data" array in this json do
 
 ```cd ztable```
 
-Run the project
+### Run the project
 
 ```npm run serve```
 
-Access the project in your browser.[http://localhost:8080/](http://localhost:8080/)
-In src/App.vue we have:
+or
 
-``` html
-<AutoTable api="https://reqres.in/api/products" array_data="data"/>
-```
+```yarn serve```
 
-You can edit the ```api``` and ```array_data``` properties as you want.
+### Install from npm
 
-### Install from npm 
 * You must have a vue project and vuetify installed in it.
 * In your vue project: ```npm install @zenetys/ztable```
 
 * Import the component in your ```src/main.js``` as follow
 ``` js
-import autoTable from 'ztable';
+import AutoTable from '@zenetys/ztable';
+
 Vue.use(autoTable);
 ```
 * Start using the library in any of your component
 ``` html
-<auto-table api="https://reqres.in/api/products" array_data="data"></auto-table>
+<AutoTable :config="config"></AutoTable>
 ```
 
-NB: If you have problem with vue installation, put the code below in your ./vue.config.js
-```js
-const path = require('path');  
-module.exports = {  
-configureWebpack: {  
-     resolve: {  
-       alias: {  
-         'Vue$': path.resolve(__dirname, 'node_modules/vue/dist/vue.runtime.esm.js'),
-       },  
-     },  
-  }
-}
+#### Usage
+
+To configure the table, you can do so via the config object.
+
+```ts
+
+type defaultConfig = {
+    id: string, // the id props of the table html element
+    api: string, // the url for fetching data
+    height: number, // height of the table
+    itemClass: function || string, // css class for an individual item
+    clickable: function, // a function to define if an item is clickable
+    copyable: boolean, // boolean to configure if an item is copyable
+    paginated: boolean, // boolean to configure if table is paginated
+    heightOffsets: number, // allows to add pading to the height of the table
+    customHeadersComputation: function, // a function which allows to modify headers before display
+    search: boolean, // boolean to define if search is allowed
+    dataReady: function[], // array of function that runs after data fetch
+    columns: ColumnConfig, // list of object to define  headers columns
+    path: string, // path to extract data from
+};
 ```
 
-#### Customize
-
-You can customize the ``` src/plugins/formatManager.js ``` to make the render you want for cell content, cell color and row color.
+* Make a row color to been green light if item.status == 1
 ```js
-// To customize the content of the cell.
-// param cellValue: The cell value
-cellContent(cellValue)
-
-// To customize the color of the cell
-// param cellValue: The cell value
-cellColor(cellValue)
-
-// To customize the color of the lign (table row)
-// param item: The item is an object that represents one lign in the table.
-rowColor(item)
-
-// To customize the sort order in the table by column
-// param items: All data in the table
-// param index: The sortBy value(the column). EX: id.
-// param isDesc: The sort value. isDesc==false => Ascending order.
-customSortByColumn(items, index, isDesc)
-```
-
-Let's have some examples of code.
-
-* Show the string "Active" in a cell instead of the value, if cellValue==1
-```js
-export function cellContent(cellValue) {
-    if (cellValue==1) {
-      return "Active";
-    } else {
-      return ''+cellValue;
+config: {
+    ...
+    itemClass: (item, value) => {
+        if (item.status==1) {
+            return 'green lighten-4';
+        }
+        return '';
     }
 }
 ```
 
-* Make a cell color to be green if cellValue==1
+To configure the columns we use a list of object named after the name of the header
+```ts
+type ColumnConfig = {
+    formatHtml: function,
+    formatText: function,
+    tooltip: function,
+    getTitle: function,
+    isHtml: boolean,
+    enabled: boolean,
+    cssClass: function,
+    cssStyle: function,
+    order: number,
+    sortable: function || boolean,
+};
+```
+
+* Make a cell color to be green if the cell value is equal to 1
+
 ```js
-export function cellColor(cellValue) {
-    if (cellValue==1) {
-      return 'green';
+config: {
+    ...
+    cssClass: (item, value) => {
+        if (value == 1) {
+            return 'greenClass';
+        }
+        return '';
     }
-    return '';
+    cssStyle: (item, value) => {
+        if (value == 1) {
+            return 'background-color: green';
+        }
+        return '';
+    }
 }
 ```
 
-* Make a row color to been green light if item.status==1
+* Show the string "Active" in a cell instead of the value, if the cell value is equal to 1
+
 ```js
-export function rowColor(item) {
-    if (item.status==1) {
-      return 'green lighten-4';
+config: {
+    ...
+    formatHtml: (item, value) => {
+        if (value==1) {
+            return "Active";
+        } else {
+            return '' + value;
+        }
     }
-    return '';
 }
 ```
 
 * Make custom sort: ```column id => asc | desc```. (Assume here id is in integer).
 
-In src/component/AutoTable.vue, add ```:custom-sort="customSort"``` in ```v-data-table```.
-``` html
-<v-data-table :custom-sort="customSort"></v-data-table>
-```
-
-In src/plugins/formatManager.js
 ``` js
-export function customSortByColumn(items, index, isDesc) {
-    items.sort((a, b) => {
-        if (index=="id") {
-            if (isDesc[0]) {
-                return b[index] - a[index];
-            } else {
-                return a[index] - b[index];
-            }
+id: {
+    ...
+    sortable: function(a, b, sortBy) {
+        if (a[sortBy] > b[sortBy] || a[sortBy] === null && b[sortBy] !== null) {
+            return -1;
         }
-    })
-    return items;
+        if (a[sortBy] < b[sortBy] || b[sortBy] === null && a[sortBy] !== null) {
+            return 1;
+        }
+        // a must be equal to b
+        return 0;
+    }
 }
 ```
-
 
 ### Usage via CDN
 Copy the code below in your `index.html` file.
@@ -168,29 +175,29 @@ Copy the code below in your `index.html` file.
 <!DOCTYPE html>
 <html>
 <head>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
-  <div id="mytable">
-    <v-app>
-      <v-main>
-        <auto-table api="https://reqres.in/api/products" array_data="data"></auto-table>
-      </v-main>
-    </v-app>
-  </div>
+    <div id="mytable">
+        <v-app>
+            <v-main>
+                <AutoTable :config="config"></AutoTable>
+            </v-main>
+        </v-app>
+    </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@zenetys/ztable@0.1.25/dist/z-table.umd.js"></script>
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zenetys/ztable@0.1.25/dist/z-table.umd.js"></script>
+<script>
     new Vue({
-      el: '#mytable',
-      vuetify: new Vuetify(),
+        el: '#mytable',
+        vuetify: new Vuetify(),
     })
-  </script>
+</script>
 </body>
 </html>
 ```
@@ -198,4 +205,41 @@ Copy the code below in your `index.html` file.
 
 ### Build for lirary
 
-```npm run lib```
+```npm run build```
+
+or
+
+```yarn build```
+
+Then you can pack the package to test it locally
+
+``` npm pack ```
+
+or
+
+``` yarn pack ```
+
+Then you can install it
+
+``` npm install file:<path of the package>```
+
+or
+
+``` yarn add file:<path of the package>```
+
+#### WARNING
+
+If you use Vuetify with treeShaking, be sure to import the components required by Autotable:
+- VDatatable
+- VOverlay
+- VBtn
+- VTooltip
+- VCard
+
+To fix the problem, instead of:
+
+```import Vuetify from 'vuetify/lib'```
+
+use:
+
+```import Vuetify from 'vuetify'```
