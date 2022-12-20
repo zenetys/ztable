@@ -333,27 +333,27 @@ export default {
     },
     props: {
         config: {
-            type: Config,
+            type: [ Config, String ],
         },
     },
     computed: {
         id() {
-            return this.$props.config.id || 'auto-table';
+            return this.tableConfig.id || 'auto-table';
         },
         isPaginated() {
-            return this.$props.config.paginated ? true : false;
+            return this.tableConfig.paginated ? true : false;
         },
         search() {
-            return this.$props.config.search || '';
+            return this.tableConfig.search || '';
         },
         itemClass() {
-            return this.$props.config.itemClass || '';
+            return this.tableConfig.itemClass || '';
         },
         itemClick() {
-            return this.$props.config.clickable || null;
+            return this.tableConfig.clickable || null;
         },
         activeCopyCellContent() {
-            return this.$props.config.copyable || false;
+            return this.tableConfig.copyable || false;
         },
         formattedTableItems() {
             return this.tableItems?.map((item, index) => ({
@@ -387,10 +387,21 @@ export default {
             sortableFunctions: {},
             sortDesc: false,
             sortBy: '',
+            tableConfig: {
+                api: '',
+                height: 'auto',
+            },
         };
     },
     watch: {
-        'config.api': {
+        config: {
+            immediate: true,
+            handler() {
+                this.loadConfig();
+            },
+            deep: true,
+        },
+        'tableConfig.api': {
             immediate: true,
             handler() {
                 this.fetchTableItems();
@@ -416,7 +427,7 @@ export default {
         fetchTableItems() {
             const setup = (data) => {
                 /* move data pointer to actual data */
-                const path = this.$props.config.path.split('.');
+                const path = this.tableConfig.path.split('.');
                 for (let i = 0; i < path.length; i++) {
                     if (path[i].length > 0) {
                         if (data[path[i]])
@@ -429,15 +440,15 @@ export default {
                 if (!Array.isArray(data))
                     throw Error('Data is not an array');
 
-                for (let cb of this.$props.config.dataReady)
+                for (let cb of this.tableConfig.dataReady)
                     cb(data);
                 this.tableItems = data;
             }
 
-            const api = this.$props.config.api;
+            const api = this.tableConfig.api;
 
             /* it starts here */
-            console.log('AutoTable: fetchTableItems: $props.config.api =', api);
+            console.log('AutoTable: fetchTableItems: tableConfig.api =', api);
 
             if (!api) {
                 console.log('AutoTable: fetchTableItems: invalid url, set no data');
@@ -456,13 +467,56 @@ export default {
                 .catch((e) => { this.error = e; console.error(e); })
                 .finally(() => { this.isLoading = false; });
         },
+        async loadConfig() {
+            if (typeof this.$props.config == "object") {
+                this.tableConfig = this.$props.config;
+                return;
+            }
+
+            /* Assume this.$props.config type String for the remaining of this
+             * function due to the type contraint on the prop. */
+            let config = null;
+
+            if (this.$props.config.startsWith('http'))
+                config = await this.fetchConfig(this.$props.config)
+            else
+                config = JSON.parse(this.$props.config)
+
+            const elements = [
+                'cssClass', 'cssStyle', 'formatText', 'formatHtml', 'tooltip',
+                'sortable', 'clickable',
+            ];
+
+            Object.keys(config.columns).forEach((header) => {
+                const column = config.columns[header];
+                Object.keys(column).forEach((key) => {
+                    if (elements.includes(key)) {
+                        const text = column[key]
+                        let func = null
+                        if (text.startsWith('{'))
+                            func = eval('(value, item) => ' + text);
+                        else if (text.startsWith('@'))
+                            func = this[text.slice(1)];
+                        else
+                            func = () => text;
+                        column[key] = func;
+                    }
+                });
+            });
+
+            this.tableConfig = new Config(config);
+        },
+        async fetchConfig(url) {
+            const res = await axios(url);
+            return res.data;
+        },
         /**
          * Get a class name depending an the item
          * @param {*} item - The item to get the class name for
          * @returns {string} - The class name
          */
         getRowClass(item) {
-            const itemClass = this.$props.config.itemClass;
+            const itemClass = this.tableConfig.itemClass;
             return typeof itemClass === 'function' ? itemClass(item) : (itemClass || '');
         },
         /**
@@ -478,7 +532,7 @@ export default {
          * Set the height of the table
          */
         setTableHeight() {
-            const height = this.$props.config.height;
+            const height = this.tableConfig.height;
             if (height === 'auto') {
                 this.tableHeight = this.computeAutoTableHeight();
             }
@@ -509,8 +563,8 @@ export default {
 
                 tableHeight -= footerHeight;
 
-                if (this.$props.config.heightOffsets) {
-                    this.$props.config.heightOffsets.forEach((offset) => {
+                if (this.tableConfig.heightOffsets) {
+                    this.tableConfig.heightOffsets.forEach((offset) => {
                         if (typeof offset === 'number') {
                             tableHeight += offset;
                         }
@@ -585,7 +639,7 @@ export default {
                 };
                 this.preferences[header.value] = data;
             });
-            localStorage.setItem(this.$props.config.id, JSON.stringify(this.preferences));
+            localStorage.setItem(this.tableConfig.id, JSON.stringify(this.preferences));
         },
         changeFixedWidth($event) {
             this.hasFixedWidths = $event;
@@ -622,11 +676,11 @@ export default {
             });
 
             // Run custom processing of headers
-            if (typeof this.$props.config.customHeadersComputation === 'function')
-                this.$props.config.customHeadersComputation(headers);
+            if (typeof this.tableConfig.customHeadersComputation === 'function')
+                this.tableConfig.customHeadersComputation(headers);
 
-            if (localStorage.getItem(this.$props.config.id)) {
-                const preferences = JSON.parse(localStorage.getItem(this.$props.config.id));
+            if (localStorage.getItem(this.tableConfig.id)) {
+                const preferences = JSON.parse(localStorage.getItem(this.tableConfig.id));
                 this.preferences = preferences;
             }
 
@@ -639,7 +693,7 @@ export default {
                 const columnDefinition = Object.assign(
                     {},
                     defaultColumnDefinition,
-                    this.$props.config.columns[header.value]
+                    this.tableConfig.columns[header.value],
                 );
 
                 header.text ??= columnDefinition.label
@@ -776,7 +830,7 @@ export default {
             }
 
             if (!this.hasFixedWidths) {
-                const elsHeader = document.querySelectorAll('#' + this.$props.config.id + ' th');
+                const elsHeader = document.querySelectorAll('#' + this.tableConfig.id + ' th');
                 elsHeader.forEach((el, i) => {
                     const width = el.offsetWidth;
                     this.headers[i].width = width;
