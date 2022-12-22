@@ -80,6 +80,20 @@ export default {
                 paginated: true,
                 height: 'auto',
                 id: 'auto-table',
+                customHeadersComputation: (headers) => {
+                    /* Adding an index header */
+                    const indexHeader = {
+                        text: '#',
+                        value: '__index',
+                        sortable: false,
+                        align: 'center',
+                        width: '50px',
+                    };
+                    headers.push(indexHeader);
+                    /** @TEMPORARY WORKAROUND UNTIL COLUMN DEFINITIONS' ORDER IS FUNCTIONAL */
+                    /* Move the index column to the first position */
+                    headers.unshift(headers.splice(headers.length - 1, 1)[0]);
+                },
             });
         },
     },
