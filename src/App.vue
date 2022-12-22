@@ -76,7 +76,7 @@ export default {
             return ({
                 api: this.DataManager.dataPromise,
                 path: this.DataManager.config.dataPath,
-                columns: this.DataManager.headers,
+                columns: this.DataManager.columnDefinitions,
                 paginated: true,
                 height: 'auto',
                 id: 'auto-table',
@@ -165,7 +165,7 @@ export default {
          */
         handleNewDataType(newType) {
             if (newType !== 'generic') {
-                DataManager.generateHeaders();
+                DataManager.generateColumnDefinitions();
             } else if (DataManager.config.headersUrl) {
                 if (DataManager.headersConfig && DataManager.headersConfig.length) {
                     DataManager.generateHeadersFromConfig();
