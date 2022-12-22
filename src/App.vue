@@ -184,6 +184,9 @@ export default {
             }
         },
     },
+    created() {
+        EventBus.$on('error', this.handleError);
+    },
     beforeDestroy() {
         EventBus.$off('error', this.handleError);
     },
