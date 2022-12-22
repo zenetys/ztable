@@ -137,7 +137,7 @@ export function formatContentForSubLinks(value, key, index = null) {
 
         contentValue.isHtml = true;
         contentValue.value = link;
-        contentValue.text = 'Item index';
+        contentValue.text = index;
     } else if (value && typeof value === 'object') {
         /* Check if the value is an array */
         const valueType = Array.isArray(value) && value.length > 0 ? 'array' : 'object';
