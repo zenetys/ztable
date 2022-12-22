@@ -26,6 +26,20 @@ export default {
     _headers: Vue.observable(null),
     _tableData: Vue.observable(null),
     _objectData: Vue.observable(null),
+    _columnDefinitions: Vue.observable(null),
+
+    /**
+     * Get the value of columnDefinitions
+     */
+    get columnDefinitions() {
+        return this._columnDefinitions;
+    },
+    /**
+     * Change the value of columnDefinitions
+     */
+    set columnDefinitions(value) {
+        this._columnDefinitions = value;
+    },
 
     /**
      * Get the value of apiData
@@ -182,10 +196,11 @@ export default {
     /**
      * Generate an array of unique headers from the current table data
      */
-    generateHeaders() {
+    generateColumnDefinitions() {
         let headers = [];
         /** Header index */
         let hid = 0;
+        
 
         if (this.tableData && this.tableData?.length > 0) {
             const firstRow = this.tableData[0];
@@ -365,7 +380,7 @@ export default {
                 this.fetchHeadersConfig();
             } else {
                 /* Generate headers based on the data */
-                this.generateHeaders();
+                this.generateColumnDefinitions();
             }
         } else if (typeof foundData === 'object') {
             this.objectData = foundData;
