@@ -14,31 +14,18 @@ const formattingMethods = {
 
 /**
  * Get the content of a table cell
- * @param {string} header the header of the column.
+ * @param {string} value the raw value of an item for a table cell.
  * @param {string} item the data object of the row.
+ * @param {string} key the key to add to the path to navigate to if needed.
  * @returns {*} the content to display in the cell.
  */
-export function getCellContent(header, item) {
+export function getCellContent(value, item, key) {
     if (DataManager.config.dataType === 'generic') {
-        return getGenericCellContent(header, item);
+        return formatContentForSubLinks(value, key, item?.__index);
     } else {
         // Temporary - to be replaced by API specific methods
-        return NavitiaManager.getCellContent(header, item);
+        return NavitiaManager.getCellContent(value, item, key);
     }
-}
-
-/**
- * Get the content of a table cell from a generic JSON object
- * @param {string} header the header of the column.
- * @param {string} item the data object of the row.
- * @returns {*} the content to display in the cell.
- */
-function getGenericCellContent(header, item) {
-    const value = item[header.value];
-    const key = header.value;
-    const index = item.__zid;
-
-    return formatContentForSubLinks(value, key, index);
 }
 
 /**
