@@ -27,21 +27,21 @@ export default {
     },
 
     /**
-     * Get the content of a table cell
-     * @param {*} header the header of the column.
-     * @param {*} item the data object of the row.
+     * Get the content of a table cell depending on the column and row.
+     * @param {string} column the name of the table column.
+     * @param {*} item the data object for a table row.
      * @returns {*} the content to display in the cell.
      */
-    getCellContent(header, item) {
+    getCellContent(column, item) {
         const cellValue = {
             isHtml: false,
             value: null,
         };
 
-        if (header?.value && item && item[header.value] && propertiesCallbacks[header.value]) {
-            return propertiesCallbacks[header.value](item);
+        if (column && item && item[column] && propertiesCallbacks[column]) {
+            return propertiesCallbacks[column](item);
         } else {
-            cellValue.value = item[header.value];
+            cellValue.value = item[column];
             return cellValue;
         }
     },

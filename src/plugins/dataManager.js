@@ -194,78 +194,70 @@ export default {
             });
     },
     /**
-     * Generate an array of unique headers from the current table data
+     * Generate an array of column definitions based on the table data.
      */
     generateColumnDefinitions() {
-        let headers = [];
-        /** Header index */
-        let hid = 0;
-        
+        let columns = {};
 
         if (this.tableData && this.tableData?.length > 0) {
             const firstRow = this.tableData[0];
 
-            /* if the data is made of objects, generate headers based on objects' unique fields */
+            /* if the data is made of data objects, generate columns based on the data's unique fields */
             if (typeof firstRow === 'object' && !Array.isArray(firstRow)) {
-                /* In generic mode, add an item index header for navigation */
                 if (this.config.dataType === 'generic') {
-                    const indexHeader = {
-                        ...this.defaultHeaderConfig,
-                        text: '#',
-                        value: '__index',
-                        width: '60px',
-                        hid: hid++,
+                    /* In generic mode, add specific formatting for the index header for navigation */
+                    const indexDefinition = {
+                        formatHtml: (value, item) => getCellContent(value, item, '__index').value,
+                        formatText: (value, item) => getCellContent(value, item, '__index').value,
+                        getTitle: (value, item) => getCellContent(value, item, '__index').text,
+                        isHtml: true,
+                        label: '#',
+                        order: -999,
                     };
-                    headers.push(indexHeader);
+                    Object.assign(columns, { __index: indexDefinition });
                 }
 
-                /* If the table is made of objects and not arrays, look for unique keys and create headers */
+                /* If the table is made of objects and not arrays, look for unique keys and create column definitions */
                 this.tableData.forEach((item) => {
                     Object.keys(item).forEach((key) => {
-                        let label = String(key.charAt(0).toUpperCase() + key.slice(1));
-
-                        if (!headers.some((header) => header.value === key)) {
-                            headers.push({
-                                ...this.defaultHeaderConfig,
-                                text: label,
-                                value: key,
-                                hid,
-                            });
-
-                            hid++;
+                        if (!Object.prototype.hasOwnProperty.call(columns, key)) {
+                            columns[key] = {
+                                formatHtml: (value, item) => getCellContent(value, item, key).value,
+                                formatText: (value, item) => getCellContent(value, item, key).value,
+                                getTitle: (item) => getCellContent(null, item, key).text,
+                                isHtml: () => getCellContent(null, item, key).isHtml,
+                            };
                         }
                     });
                 });
-            } else if (typeof firstRow === 'string' || typeof firstRow === 'number' || typeof firstRow === 'boolean') {
-                /* If the data is an array of simple values, assign index/key headers */
-                /* The index header is just the index of the item in the array (__zid) */
-                const indexHeader = {
-                    ...this.defaultHeaderConfig,
-                    text: 'Index',
-                    value: 'index',
-                    hid: 0,
-                };
-                indexHeader.getCellContent = (header, item) => {
-                    return {
-                        isHtml: false,
-                        value: item.__zid,
-                    };
+            } else if (['string', 'number', 'boolean'].includes(typeof firstRow)) {
+                /* If the data is an array of simple values, create index/value column definitions */
+                /* The index header is simply the index of the item in the array ('__index') */
+                const indexDefinition = {
+                    formatHtml: (value, item) => getCellContent(value, item, '__index').value,
+                    formatText: (value, item) => getCellContent(value, item, '__index').text,
+                    getTitle: (value, item) => getCellContent(value, item, '__index').text,
+                    isHtml: false,
+                    label: '#',
+                    order: -999,
+                    divider: true,
+                    enabled: true,
+                    width: '5%',
                 };
 
-                headers = [
-                    indexHeader,
-                    {
-                        ...this.defaultHeaderConfig,
-                        text: 'Value',
-                        value: 'value',
-                        hid: 1,
-                    },
-                ];
+                const ValueDefinition = {
+                    formatHtml: (value) => value,
+                    formatText: (value) => value,
+                    getTitle: (value) => value,
+                    tooltip: (value) => value,
+                    label: 'Value',
+                    isHtml: false,
+                };
+
+                Object.assign(columns, { __index: indexDefinition, value: ValueDefinition });
             }
 
-            this.headers = headers;
-            /* Once headers are set, check if there's any column configuration in storage and apply it */
-            StorageConfigManager.loadStorageConfig();
+            this.columnDefinitions = columns;
         }
     },
     /**
