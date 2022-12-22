@@ -17,6 +17,7 @@
 <style lang="scss" scoped>
 .__object-card {
     height: 100%;
+    overflow-y: auto;
 }
 
 .__object-card--row {
