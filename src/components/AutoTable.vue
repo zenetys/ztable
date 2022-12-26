@@ -87,9 +87,10 @@
                             :key="headerIndex"
                             :title="header.columnDefinition.getTitle(item)"
                             :class="getCellClass(header, item)"
-                            :_call_format_only_once="(() => {
-                                formatResult = header.columnDefinition.formatText(item[header.value], item);
-                            })()"
+                            v-on="header.columnDefinition.copyable
+                                ? { mouseenter: onMouseEnterBodyCell, mouseleave: onMouseLeaveBodyCell }
+                                : {}
+                            "
                         >
                             <span
                                 v-if="header.columnDefinition.formatHtml"
@@ -128,7 +129,7 @@
                             />
                             <span v-else>No render</span>
                             <span
-                                v-if="activeCopyCellContent && formatResult"
+                                v-if="header.columnDefinition.copyable"
                                 class="cp-span mdi mdi-content-copy"
                                 @click="copyCellContent(id, headerIndex, itemIndex, $event)"
                             >
@@ -236,12 +237,8 @@ tbody .v-data-table__divider span {
             /* position relative needed for the copy button icon */
             position: relative;
 
-            &:not(.nocp) {
+            &.copyable {
                 padding-right: 18px !important;
-            }
-
-            &:hover:not(.nocp) .cp-span {
-                display: block;
             }
 
             .cp-span {
@@ -263,7 +260,7 @@ tbody .v-data-table__divider span {
                     position: absolute;
                     top: 2px;
                     right: 17px;
-                    font-size: 11px;
+                    font-size: 10px;
                 }
             }
         }
@@ -329,6 +326,7 @@ const defaultColumnDefinition = {
     order: 999,
     sortable: true,
     truncable: true,
+    copyable: true,
 };
 
 const defaultConfig = {
@@ -337,7 +335,6 @@ const defaultConfig = {
     height: undefined,
     itemClass: undefined,
     clickable: undefined,
-    copyable: undefined,
     paginated: undefined,
     heightOffsets: undefined,
     customHeadersComputation: undefined,
@@ -372,9 +369,6 @@ export default {
         },
         itemClick() {
             return this.tableConfig.clickable || null;
-        },
-        activeCopyCellContent() {
-            return this.tableConfig.copyable || false;
         },
         formattedTableItems() {
             return this.tableItems?.map((item, index) => ({
@@ -507,7 +501,7 @@ export default {
 
             const elements = [
                 'cssClass', 'cssStyle', 'formatText', 'formatHtml', 'tooltip',
-                'sortable', 'clickable', 'truncable',
+                'sortable', 'clickable', 'truncable', 'copyable',
             ];
 
             Object.keys(config.columns).forEach((header) => {
@@ -553,7 +547,8 @@ export default {
         getCellClass(header, tableItem) {
             return header.columnDefinition.cssClass(tableItem) +
                 ' v-data-table__divider col_' + header.value + ' cell_' + header.value +
-                (header.columnDefinition.truncable ? ' truncable' : '');
+                (header.columnDefinition.truncable ? ' truncable' : '') +
+                (header.columnDefinition.copyable ? ' copyable' : '');
         },
         /**
          * Set the height of the table
@@ -918,7 +913,35 @@ export default {
                 this.curCol.style.minWidth = width + 'px';
                 this.curCol.style.maxWidth = width + 'px';
             }
-        }
+        },
+
+        /* CELL CONTENT COPY BUTTON */
+
+        /**
+         * Handle mouse enter on a cell of the table body.
+         * Used to display the copy icon if the cell content is not empty.
+         * @param {MouseEvent} ev - DOM event object
+         */
+        onMouseEnterBodyCell(ev) {
+            /* do not display the copy icon on empty cells */
+            const spanContent = ev.target.querySelector('span:first-child');
+            if (spanContent && spanContent.textContent === '')
+                return;
+
+            const spanCopyIcon = ev.target.querySelector('span.cp-span');
+            if (spanCopyIcon)
+                spanCopyIcon.classList.add('d-block');
+        },
+        /**
+         * Handle mouse leave from a cell of the table body.
+         * Used to hide the copy icon.
+         * @param {MouseEvent} ev - DOM event object
+         */
+        onMouseLeaveBodyCell(ev) {
+            const spanCopyIcon = ev.target.querySelector('span.cp-span');
+            if (spanCopyIcon)
+                spanCopyIcon.classList.remove('d-block');
+        },
     },
     mounted() {
         this.$nextTick(() => this.setTableHeight());
