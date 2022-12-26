@@ -88,7 +88,7 @@
                             v-for="(header, headerIndex) in headers"
                             :key="headerIndex"
                             :title="header.columnDefinition.getTitle(item)"
-                            :class="getHeaderClassForItem(header, item)"
+                            :class="getCellClass(header, item)"
                             :_call_format_only_once="(() => {
                                 formatResult = header.columnDefinition.formatText(item[header.value], item);
                             })()"
@@ -533,12 +533,13 @@ export default {
             return typeof itemClass === 'function' ? itemClass(item) : (itemClass || '');
         },
         /**
-         * Get header classes for a provided item
-         * @param {string} header - The header to get classes for
-         * @param {object} tableItem - The related table item
-         * @returns {string} - The header classes
+         * Get CSS class list of a body cell
+         * @param {string} header - Header (column) to get classes for
+         * @param {object} tableItem - Data for this row
+         * @returns {string} - CSS class list for the body cell matching the
+         *      given header (column) and row object.
          */
-        getHeaderClassForItem(header, tableItem) {
+        getCellClass(header, tableItem) {
             return header.columnDefinition.cssClass(tableItem) + ' v-data-table__divider col_' + header.value;
         },
         /**
