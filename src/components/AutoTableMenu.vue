@@ -1,11 +1,11 @@
 <template>
     <div class="menu">
-        <v-tooltip top>
+        <v-tooltip bottom transition="none">
             <template v-slot:activator="{ on, attrs }">
                 <v-btn
                     elevation="0"
                     absolute
-                    small
+                    x-small
                     v-bind="attrs"
                     v-on="on"
                     @click="enabled = !enabled"
@@ -14,15 +14,15 @@
                     <v-icon color="primary" small>mdi-cog</v-icon>
                 </v-btn>
             </template>
-            <span style="font-size: 12px;">Open columns settings</span>
+            <span>Open columns settings</span>
         </v-tooltip>
 
-        <v-tooltip bottom>
+        <v-tooltip bottom transition="none">
             <template v-slot:activator="{ on, attrs }">
                 <v-btn
                     elevation="0"
                     absolute
-                    small
+                    x-small
                     v-bind="attrs"
                     v-on="on"
                     @click="exportToCsv"
@@ -31,7 +31,7 @@
                     <v-icon color="primary" small>mdi-microsoft-excel</v-icon>
                 </v-btn>
             </template>
-            <span style="font-size: 12px;">Export to csv</span>
+            <span>Export to CSV</span>
         </v-tooltip>
 
         <aside
@@ -41,33 +41,35 @@
             @dragover="onDragOver"
             @dragend="onDragEnd"
         >
-            <div class="flex justify-between menu_header">
-                <strong>Visible</strong>
-                <strong>Column</strong>
-                <strong>Width</strong>
+            <div class="flex justify-between items-center menu_row">
+                <span></span>
+                <span class="font-weight-medium">Column</span>
+                <span class="font-weight-medium">Width</span>
             </div>
             <div
                 v-for="header in items"
                 :key="header.value"
-                class="flex justify-between items-center menu_item"
+                class="flex justify-between items-center menu_row"
                 draggable="true"
             >
-                <input type="checkbox" v-model="header.columnDefinition.enabled">
-                <div class="" style="width: 50%">
-                    <p class="text-left capitalize">{{ header.value }}</p>
-                </div>
-                <input
-                    v-model="header.width"
-                    :disabled="!header.columnDefinition.enabled"
-                    :class="!header.columnDefinition.enabled ? 'disabled' : ''"
-                    style="border-bottom: 1px dashed black;"
-                    @change="toggleFixedWidth(true)"
-                >
+                <span><input type="checkbox" v-model="header.enabled" /></span>
+                <span v-if="header.text">{{ header.text }}</span>
+                <span v-else class="font-italic">{{ header.value }}</span>
+                <span>
+                    <input
+                        v-model="header.width"
+                        :disabled="!header.columnDefinition.enabled"
+                        :class="!header.columnDefinition.enabled ? 'disabled' : ''"
+                        class="text-right"
+                        style="border-bottom: 1px dashed black;"
+                        @change="toggleFixedWidth(true)"
+                    />
+                </span>
             </div>
             <div class="flex justify-between mt-3">
                 <v-btn
-                    small
-                    color="primary"
+                    x-small
+                    color="red"
                     class="primary_button"
                     :disabled="!hasFixedWidths"
                     @click="hasFixedWidths ? toggleFixedWidth(false) : ''"
@@ -84,48 +86,54 @@
 </template>
 
 <style scoped lang="scss">
-::v-deep {
-    .v-btn:not(.v-btn--round).v-size--small {
-        height: auto;
-        padding: 0.5em 0.75em;
-        min-width: 0!important;
-        box-shadow: none;
-        background: none;
-    }
+.v-tooltip__content {
+    font-size: 10px;
+    padding: 0px 8px;
 }
 .menu {
     position: relative
 }
-.menu_button {
+.v-btn.menu_button {
     position: absolute;
-    top: 2px;
+    top: 6px;
     right: 26px;
     z-index: 10;
+    width: 20px;
+    min-width: inherit;
 }
 .menu_modal {
     background-color: rgba(255, 255, 255, 1);
     width: 175px;
     position: absolute;
     top: 35px;
-    right: 30px;
+    right: 26px;
     z-index: 10;
-    padding: 1em;
+    padding: 0.7em;
     filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));
 }
 .menu-drag-class {
     background-color: rgba(0, 0, 0, 0.3)
 }
-.menu_header {
-    padding-bottom: 0.25em;
+.menu_row {
+    margin-bottom: 0.20em;
 }
-.menu_item:not(:last-child) {
-    margin-bottom: 0.25em;
+.menu_row > span {
+    font-size: 12px;
 }
-.export_button {
-    position: absolute;
-    top: 2px;
-    right: 60px;
-    z-index: 10;
+.menu_row > :nth-child(1) {
+    width: 20%;
+}
+.menu_row > :nth-child(2) {
+    width: 50%;
+}
+.menu_row > :nth-child(3) {
+    width: 30%;
+    text-align: right;
+}
+.v-btn.export_button {
+    width: 20px;
+    min-width: inherit;
+    top: -1px;
 }
 .flex {
     display: flex;
@@ -139,39 +147,28 @@
 .items-center {
     align-items: center;
 }
-.text-left {
-    text-align: left;
-}
-.capitalize {
-    text-transform: capitalize;
-}
 .color-white {
     background-color: #fcfcfc!important;
 }
-.primary_button {
+.v-btn.primary_button {
     background-color: #3f51b5;
     color: #ffffff;
-    padding: 0.25em 0.75em;
+    height: 23px;
 }
 button,
 input {
     outline: none;
 }
-input {
-    max-width: 2em;
-}
-p {
-    margin: 0!important;
-}
-p,
-strong,
-input,
-button {
-    font-size: 12px;
-    font-family: 'Roboto';
+input[type="text"] {
+    max-width: 70%;
+    line-height: 1em;
+    border-bottom: 1px dashed black;
+    padding-right: 3px;
 }
 input[type="checkbox"] {
     accent-color: #0f6e84;
+    position: relative;
+    top: 2px;
 }
 </style>
 
