@@ -92,7 +92,7 @@
                             })()"
                         >
                             <span
-                                v-if="header.columnDefinition.isHtml"
+                                v-if="header.columnDefinition.formatHtml"
                                 :title="
                                     typeof header.columnDefinition.tooltip === 'function'
                                         ? header.columnDefinition.tooltip(item[header.value], item)
@@ -117,14 +117,16 @@
                                 />
                             </span>
                             <span
-                                v-else
+                                v-else-if="header.columnDefinition.formatText"
                                 :title="
                                     typeof header.columnDefinition.tooltip === 'function'
                                         ? header.columnDefinition.tooltip(item[header.value], item)
                                         : header.columnDefinition.tooltip
                                 "
                                 :style="header.columnDefinition.cssStyle(item[header.value], item)"
-                            >{{ formatResult }}</span>
+                                v-text="header.columnDefinition.formatText(item[header.value], item)"
+                            />
+                            <span v-else>No render</span>
                             <span
                                 v-if="activeCopyCellContent && formatResult"
                                 class="cp-span mdi mdi-content-copy"
@@ -317,11 +319,10 @@ import AutoTableMenu from '@/components/AutoTableMenu.vue';
 
 
 const defaultColumnDefinition = {
-    formatHtml: (value, item) => this.formatText(value, item),
+    formatHtml: undefined,
     formatText: (value) => value,
     tooltip: () => '',
     getTitle: () => '',
-    isHtml: false,
     enabled: true,
     cssClass: () => '',
     cssStyle: () => '',
