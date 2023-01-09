@@ -27,21 +27,22 @@ export default {
     },
 
     /**
-     * Get the content of a table cell depending on the column and row.
-     * @param {string} column the name of the table column.
+     * Get the content of a table cell depending on the the raw value, the key and the table item.
+     * @param {*} value the raw value of the item for a given key.
      * @param {*} item the data object for a table row.
+     * @param {string} key the key of the column.
      * @returns {*} the content to display in the cell.
      */
-    getCellContent(column, item) {
+    getCellContent(value, item, key) {
         const cellValue = {
             isHtml: false,
             value: null,
         };
 
-        if (column && item && item[column] && propertiesCallbacks[column]) {
-            return propertiesCallbacks[column](item);
+        if (key && propertiesCallbacks[key]) {
+            return propertiesCallbacks[key](item);
         } else {
-            cellValue.value = item[column];
+            cellValue.value = value;
             return cellValue;
         }
     },
@@ -76,7 +77,7 @@ function formatGeo(item) {
 
     if (Array.isArray(item?.geo) && item?.geo?.length === 2) {
         formattedGeo.value = `lat: ${item.geo[0]}, long: ${item.geo[1]}`;
-    } else {
+    } else if (item?.geo?.value) {
         formattedGeo.value = item.geo.value || '';
     }
 
