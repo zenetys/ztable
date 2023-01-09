@@ -48,7 +48,6 @@ import ConfigDialog from '@/components/ConfigDialog.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import TreePanel from '@/components/TreePanel.vue';
 import DataManager from '@/plugins/dataManager';
-import StorageConfigManager from '@/plugins/storageConfigManager';
 import { loadApiSpecificStyle } from '@/plugins/formatManager';
 import { EventBus } from '@/plugins/eventBus';
 
@@ -64,7 +63,6 @@ export default {
     data() {
         return {
             DataManager,
-            StorageConfigManager,
         };
     },
     computed: {
