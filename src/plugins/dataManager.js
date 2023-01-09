@@ -1,16 +1,10 @@
 import Vue from 'vue';
 import axios from 'axios';
 import { EventBus } from '@/plugins/eventBus';
-import { getCellContent, getCellClasses, loadApiSpecificStyle } from '@/plugins/formatManager';
+import { getCellContent, loadApiSpecificStyle } from '@/plugins/formatManager';
 import NavitiaManager from '@/plugins/api-managers/navitia/navitiaManager';
 
 export default {
-    defaultHeaderConfig: {
-        divider: true,
-        align: 'start',
-        getCellClasses,
-        visible: true,
-    },
     _config: Vue.observable({
         dataUrl: '',
         dataPath: '',
