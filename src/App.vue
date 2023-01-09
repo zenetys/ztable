@@ -123,24 +123,13 @@ export default {
          * Handle the updated Data config
          * @param {Object} config - the updated Data config from the DataManager
          * @param {Boolean} shouldFetchData Wether or not the data needs to be refetched from an API URL
-         * @param {Boolean} shouldFetchHeaders Wether or not the headers config needs to be refetched from an API URL
          */
-        handleConfig(config, shouldFetchData, shouldFetchHeaders) {
+        handleConfig(config, shouldFetchData) {
             if (config.dataUrl) {
+                /* Fetch data from source URL */
                 if (shouldFetchData) {
-                    /* Fetch data from source URL */
                     this.fetchDataAndInitComponents();
                     this.closeConfigDialog();
-                } else if (shouldFetchHeaders) {
-                    /* Fetch headers config from remote URL */
-                    DataManager.fetchHeadersConfig()
-                        .then(() => {
-                            this.closeConfigDialog();
-                        })
-                        .catch((err) => {
-                            EventBus.$emit('ZTable Error : fetching remote headers', err);
-                            this.openConfigDialog();
-                        });
                 }
             } else {
                 /* Show form again */
@@ -178,16 +167,6 @@ export default {
          * @param {String} newType the new data type
          */
         handleNewDataType(newType) {
-            if (newType !== 'generic') {
-                DataManager.generateColumnDefinitions();
-            } else if (DataManager.config.headersUrl) {
-                if (DataManager.headersConfig && DataManager.headersConfig.length) {
-                    DataManager.generateHeadersFromConfig();
-                } else {
-                    DataManager.fetchHeadersConfig();
-                }
-            }
-
             /* If data type is API specific, load the API specific style,
             otherwise remove API specific style */
             if (newType !== 'generic') {
@@ -213,21 +192,17 @@ export default {
                     newRoute.query?.source !== oldRoute.query.source ||
                     newRoute.query?.path !== oldRoute.query.path ||
                     newRoute.query?.type !== oldRoute.query.type ||
-                    newRoute.query?.headers !== oldRoute.query.headers
+                    newRoute.query?.config_url !== oldRoute.query.config_url
                 ) {
                     /* If config has changed, update it in the DataManager
-                    and assess whether or not to fetch data or custom headers */
+                    and assess whether or not to fetch data or custom config */
                     const config = DataManager.setConfigFromRoute(newRoute);
 
                     const pathHasChanged = newRoute.query?.path !== oldRoute?.query?.path;
                     const typeHasChanged = newRoute.query?.type !== oldRoute?.query?.type;
                     const shouldFetchData = newRoute.query?.source !== oldRoute?.query?.source;
-                    const shouldFetchHeaders =
-                        newRoute.query?.headers !== oldRoute?.query?.headers &&
-                        newRoute.query?.headers &&
-                        newRoute.query?.type === 'generic';
 
-                    this.handleConfig(config, shouldFetchData, shouldFetchHeaders);
+                    this.handleConfig(config, shouldFetchData);
 
                     /* If path changed but not the source URL, only look for new data at the new path */
                     if (pathHasChanged && !shouldFetchData) {

@@ -39,9 +39,9 @@
                                     </v-col>
                                     <v-col cols="12">
                                         <v-text-field
-                                            label="Headers config URL"
-                                            v-model="headersUrl"
-                                            hint="Source URL to a configuration file for the headers."
+                                            label="Custom Config URL"
+                                            v-model="customConfigUrl"
+                                            hint="Source URL to a custom configuration file."
                                             :disabled="dataType !== 'generic'"
                                         ></v-text-field>
                                     </v-col>
@@ -72,7 +72,7 @@ export default {
         dataUrl: '',
         dataPath: '',
         dataType: 'generic',
-        headersUrl: '',
+        customConfigUrl: '',
         selectedTab: null,
     }),
     methods: {
@@ -102,7 +102,7 @@ export default {
                 this.dataUrl !== DataManager.config.dataUrl ||
                 this.dataPath !== DataManager.config.dataPath ||
                 this.dataType !== DataManager.config.dataType ||
-                this.headersUrl !== DataManager.config.headersUrl
+                this.customConfigUrl !== DataManager.config.customConfigUrl
             ) {
                 shouldRedirect = true;
             }
@@ -113,7 +113,7 @@ export default {
                     source: this.dataUrl,
                     path: this.dataPath,
                     type: this.dataType,
-                    headers: this.headersUrl,
+                    config_url: this.customConfigUrl,
                 };
 
                 this.$router.push({ query: updatedQuery });
@@ -125,11 +125,11 @@ export default {
          * Update the local config models with the values from the DataManager
          */
         updateConfigData() {
-            [this.dataUrl, this.dataPath, this.dataType, this.headersUrl] = [
+            [this.dataUrl, this.dataPath, this.dataType, this.customConfigUrl] = [
                 DataManager.config.dataUrl,
                 DataManager.config.dataPath,
                 DataManager.config.dataType,
-                DataManager.config.headersUrl,
+                DataManager.config.customConfigUrl,
             ];
         },
     },
