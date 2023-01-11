@@ -247,7 +247,7 @@ export default {
     },
     /**
      * Find the data in the API response with the provided data path
-     * @returns {*} Either table data or object data depending on data found
+     * @returns {(object|array)} Either table data or object data depending on data found
      */
     findDataFromPath() {
         /* Resets previously found data */
@@ -293,8 +293,8 @@ export default {
     },
     /**
      * Set values for the config object from a route's query params
-     * @param {*} route
-     * @returns {{dataUrl: string, dataPath: string, datatype: string}} the updated config object
+     * @param {object} route
+     * @returns {{dataUrl: string, dataPath: string, datatype: string, customConfigUrl: string}} the updated config object
      */
     setConfigFromRoute(route) {
         if (route?.query) {

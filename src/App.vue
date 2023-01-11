@@ -133,15 +133,15 @@ export default {
         },
         /**
          * Handle any error that occurs
-         * @param {Object} error
+         * @param {object} error - the error object
          */
         handleError(error) {
             console.error('ZTable Error: ', error);
         },
         /**
          * Handle the updated Data config
-         * @param {Object} config - the updated Data config from the DataManager
-         * @param {Boolean} shouldFetchData Wether or not the data needs to be refetched from an API URL
+         * @param {object} config - the updated Data config from the DataManager
+         * @param {Boolean} shouldFetchData Wether the data needs to be refetched from an API URL
          */
         handleConfig(config, shouldFetchData) {
             if (config.dataUrl) {
@@ -190,7 +190,7 @@ export default {
         },
         /**
          * Handle a new data type being selected.
-         * @param {String} newType the new data type
+         * @param {string} newType the new data type
          */
         handleNewDataType(newType) {
             /* If data type is API specific, load the API specific style,

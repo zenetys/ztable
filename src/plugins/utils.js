@@ -4,7 +4,8 @@ import Router from '@/router';
  * Generate a link to navigate through the API data, updating the "path" param in the URL
  * @param {string} type the type of data on the destination : either "array" or "object".
  * @param {string} key the key to add to the path to navigate to.
- * @param {string} index the  index of the data we are currently viewing if in an array.
+ * @param {*} value the raw value of the cell.
+ * @param {?string} index the  index of the data we are currently viewing if in an array.
  * @returns {string} the HTML link to navigate to the updated path.
  */
 export function generateLinkToSubPath(type, key, value, index = null) {

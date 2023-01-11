@@ -5,8 +5,8 @@ import { generateLinkToSubPath, generateUrlFromPath } from '@/plugins/utils';
 
 /**
  * Get the content of a table cell
- * @param {string} value the raw value of an item for a table cell.
- * @param {string} item the data object of the row.
+ * @param {*} value the raw value of an item for a table cell.
+ * @param {object} item the data object of the row.
  * @param {string} key the key to add to the path to navigate to if needed.
  * @returns {*} the content to display in the cell.
  */
@@ -22,7 +22,7 @@ export function getCellContent(value, item, key) {
 /**
  * Get the classes of a cell from its header and item
  * @param {*} header the header of the column.
- * @param {string} item the value of the item.
+ * @param {object} item the data object of the row.
  * @returns {string} the classes of the cell.
  */
 export function getCellClasses(header, item) {
@@ -43,8 +43,8 @@ export function getCellClasses(header, item) {
 
 /**
  * Get classes for a table item
- * @param {object} item The item that represents one line in the table.
- * @returns {string} The classes for the item.
+ * @param {object} item the data object of the row.
+ * @returns {string} the classes for the item.
  */
 export function getItemClasses(item) {
     if (item) {
@@ -55,8 +55,8 @@ export function getItemClasses(item) {
 
 /**
  * Apply a custom sorting script to a given array of items.
- * @param {any[]} items the data array.
- * @param {string[]} index the sortBy value
+ * @param {array} items the data array.
+ * @param {(number|string)} index the sortBy value
  * @param {boolean[]} isDesc the sortDesc value
  * @returns {array} the sorted array.
  */
