@@ -1,9 +1,18 @@
-// Format: DD/MM/YYY (06/05/2021)
+/**
+ * Format a date to the French standard format (DD/MM/YYYY)
+ * @param {*} date - the date to format
+ * @returns {string} the formatted date
+ */
 export function frenchFormat(date) {
     return new Date(date).toLocaleDateString('fr-FR') + ' ~ ' + new Date(date).toLocaleTimeString('fr-FR');
 }
 
 // Format: month year (2m3y)
+/**
+ * Calculate the difference between a date and now, in months and years (ex: 2m3y)
+ * @param {*} date - the date to compare
+ * @returns {string} the difference between the date and now
+ */
 export function simpleFormat(date) {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     let now = new Date();
@@ -22,7 +31,11 @@ export function simpleFormat(date) {
     }
 }
 
-// Format: day hour minute second (1d5h45m78s)
+/**
+ * Calculate the difference between a date and now, in days, hours, minutes and seconds (ex: 1d5h45m78s)
+ * @param {*} date - the date to compare
+ * @returns {string} the difference between the date and now
+ */
 export function compactFormat(date) {
     let now = new Date();
     let outTime = formatDateWithMillisecond((now.getTime() - new Date(date).getTime()) / 1000);
@@ -43,6 +56,11 @@ export function compactFormat(date) {
     return outTimeFormat.join('');
 }
 
+/**
+ * Format a timestamp in seconds to a object with days, hours, minutes and seconds
+ * @param {number} second - the timestamp in seconds
+ * @returns {{dayNumber: number, hourNumber: number, minuteNumber: number, secondNumber: number}} the formatted timestamp in an object
+ */
 function formatDateWithMillisecond(second) {
     second = Math.round(second);
     let dayNumber = Math.floor(second / 86400);
