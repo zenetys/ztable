@@ -49,6 +49,9 @@ export default {
         togglePanel: {
             type: Boolean,
         },
+        /**
+         * @prop {array, object} jsonData - The data to display in the tree
+         */
         jsonData: {
             type: [Object, Array],
         },
@@ -61,8 +64,8 @@ export default {
     },
     methods: {
         /**
-         * Handle new items to display in the tree and store the opened items.
-         * @param {Array} items - the items to format
+         * Handle new data to display in the tree and store the opened items.
+         * @param {Array} data - the data to format
          * @returns {Array} the formatted items to display in the tree
          */
         handleNewData(data) {
@@ -74,17 +77,17 @@ export default {
             this.formattedItems = formattedItems;
         },
         /**
-         * Check whether an input is an array or an object.
-         * @param {any} input - the input to check
+         * Check whether some data is an array or an object.
+         * @param {*} data - the data to check
          * @returns {boolean} true if array or object
          */
         isArrayOrObject(data) {
             return Array.isArray(data) || typeof data === 'object';
         },
         /**
-         * Find which items from an array should be opened relative to a path
+         * Find which items from an array should be opened relative to a given path
          * @recursive
-         * @param {Array<string>} splitPath - the current path split into an array
+         * @param {Array<string>} pathArray - the current path split into an array
          * @param {Array} items - the items to check
          */
         findOpenItemsFromPath(pathArray, items) {
@@ -173,9 +176,9 @@ export default {
             return formattedDataLevel;
         },
         /**
-         * Get the class of an item in the tree, depending of its place in the path.
+         * Get the class of an item in the tree depending of its location in the path.
          * @param {Object} item - the item to get the class for
-         * @returns {string} the class to apply to the item
+         * @returns {string} the class(es) to apply to the item
          */
         getItemClass(item) {
             if (!this.openedItems || this.openedItems.length === 0) {
