@@ -141,12 +141,12 @@ export default {
         /**
          * Handle the updated Data config
          * @param {object} config - the updated Data config from the DataManager
-         * @param {Boolean} shouldFetchData Wether the data needs to be refetched from an API URL
+         * @param {Boolean} sourceHasChanged Wether the data needs to be refetched from an API URL
          */
-        handleConfig(config, shouldFetchData) {
+        handleConfig(config, sourceHasChanged) {
             if (config.dataUrl) {
                 /* Fetch data from source URL */
-                if (shouldFetchData) {
+                if (sourceHasChanged) {
                     this.fetchDataAndInitComponents();
                     this.closeConfigDialog();
                 }
@@ -218,6 +218,12 @@ export default {
     watch: {
         $route: {
             handler(newRoute, oldRoute) {
+                /**
+                 * Route changes - especially the query parameters - are the biggest source of 
+                 * truth for the configuration of the app. Watching for theses changes at the 
+                 * root of the App is a good way to keep the app in sync with its configuration, 
+                 * to then broadcast changes to the components and trigger handlers when needed.
+                 */
                 if (
                     !oldRoute ||
                     !oldRoute.query ||
@@ -227,21 +233,21 @@ export default {
                     newRoute.query?.config_url !== oldRoute.query.config_url
                 ) {
                     /* If config has changed, update it in the DataManager
-                    and assess whether or not to fetch data or custom config */
+                    and assess whether or not to fetch new data */
                     const config = DataManager.setConfigFromRoute(newRoute);
-
                     const pathHasChanged = newRoute.query?.path !== oldRoute?.query?.path;
                     const typeHasChanged = newRoute.query?.type !== oldRoute?.query?.type;
-                    const shouldFetchData = newRoute.query?.source !== oldRoute?.query?.source;
+                    const sourceHasChanged = newRoute.query?.source !== oldRoute?.query?.source;
 
-                    this.handleConfig(config, shouldFetchData);
+                    this.handleConfig(config, sourceHasChanged);
 
-                    /* If path changed but not the source URL, only look for new data at the new path */
-                    if (pathHasChanged && !shouldFetchData) {
+                    /* If the path changed but not the source, simply look for new data at the new path */
+                    if (pathHasChanged && !sourceHasChanged) {
                         this.checkIfDataWasFound();
                     }
 
-                    if (typeHasChanged && !shouldFetchData) {
+                    /* If the data type changed but not the source, simply handle the new data type */
+                    if (typeHasChanged && !sourceHasChanged) {
                         this.handleNewDataType(newRoute.query.type, oldRoute?.query?.type);
                     }
                 }
