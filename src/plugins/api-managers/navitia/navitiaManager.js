@@ -60,7 +60,10 @@ function formatDataSourceFile(item) {
             value: `<a href="${item.data_source_file}" title="Download file" target="_blank">${item.data_source_file}</a>`,
         };
     } else {
-        return '';
+        return {
+            isHtml: false,
+            value: '',
+        };
     }
 }
 
