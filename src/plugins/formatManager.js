@@ -4,15 +4,6 @@ import { EventBus } from '@/plugins/eventBus';
 import { generateLinkToSubPath, generateUrlFromPath } from '@/plugins/utils';
 
 /**
- * Configuration object matching formatting methods with formats
- */
-const formattingMethods = {
-    number: getFormattedNumber,
-    'geo-link': getGeoLink,
-    uri: getLinkFromURI,
-};
-
-/**
  * Get the content of a table cell
  * @param {string} value the raw value of an item for a table cell.
  * @param {string} item the data object of the row.
@@ -95,15 +86,6 @@ export function loadApiSpecificStyle(type) {
 }
 
 /**
- * Get a formatting method from a given format
- * @param {string} format the format.
- * @returns {*} the formatting method.
- */
-export function getSpecialFormatContent(format) {
-    return formattingMethods[format] ? formattingMethods[format] : getCellContent;
-}
-
-/**
  * Check if a cell value is an object or an array: if so, generate a link to the sub-path.
  * @param {string} value the value of the cell to format if needed.
  * @param {string} key the key to add to the path to navigate to.
@@ -138,57 +120,4 @@ export function formatContentForSubLinks(value, key, index = null) {
     }
 
     return contentValue;
-}
-
-/**
- * Get a link to googlemaps from given coordinates
- * @param {object} header the header of the column.
- * @param {object} item the item of the row.
- * @returns {string} the link to googlemaps.
- */
-function getGeoLink(header, item) {
-    const value = item[header.value];
-
-    if (!Array.isArray(value)) {
-        return value;
-    } else {
-        const latlngString = value.join(',');
-        return {
-            isHtml: true,
-            value: `<a href="https://maps.google.com/?q=${latlngString}" title="See on Google Maps" target="_blank">${latlngString}</a>`,
-        };
-    }
-}
-
-/**
- * Generate an anchortag from a given URI
- * @param {object} header the header of the column.
- * @param {object} item the item of the row.
- * @returns {string} the link to the URI.
- */
-function getLinkFromURI(header, item) {
-    const uri = item[header.value];
-
-    if (!uri) {
-        return {
-            isHtml: false,
-            value: '',
-        };
-    } else {
-        return {
-            isHtml: true,
-            value: `<a href="${uri}" title="Download file" target="_blank">${uri}</a>`,
-        };
-    }
-}
-
-/**
- * Format a number value to a string
- * @param {object} header the header of the column.
- * @param {object} item the item of the row.
- * @returns {string} the number in string format.
- */
-function getFormattedNumber(header, item) {
-    const value = item[header.value].value;
-    return String(value);
 }

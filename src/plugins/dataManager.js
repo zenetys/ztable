@@ -206,6 +206,7 @@ export default {
                         }
                     });
                 });
+                /** @TODO handle specific data types formatting using custom managers */
             } else if (['string', 'number', 'boolean'].includes(typeof firstRow)) {
                 /* If the data is an array of simple values, create index/value column definitions */
                 /* The index header is simply the index of the item in the array ('__index') */
