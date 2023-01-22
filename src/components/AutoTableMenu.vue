@@ -1,30 +1,30 @@
 <template>
     <div class="menu">
-    <v-tooltip top>
-         <template v-slot:activator="{ on, attrs }">
-            <v-btn
-                elevation="0"
-                absolute
-                small
-                v-bind="attrs"
-                v-on="on"
-                @click="enabled = !enabled"
-                class="menu_icon color-white"
-            >
-                <v-icon color="primary" small>mdi-cog</v-icon>
-            </v-btn>
-        </template>
-        <span style="font-size: 12px;">Open columns settings</span>
-    </v-tooltip>
+        <v-tooltip top>
+            <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                    elevation="0"
+                    absolute
+                    small
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="enabled = !enabled"
+                    class="menu_icon color-white"
+                >
+                    <v-icon color="primary" small>mdi-cog</v-icon>
+                </v-btn>
+            </template>
+            <span style="font-size: 12px;">Open columns settings</span>
+        </v-tooltip>
 
-    <v-tooltip bottom>
-         <template v-slot:activator="{ on, attrs }">
-             <v-btn class="export_button color-white" small v-bind="attrs" v-on="on" @click="exportToCsv">
-                 <span class=""><v-icon color="primary" small >mdi-microsoft-excel</v-icon></span>
-             </v-btn>
-        </template>
-        <span style="font-size: 12px;">Export to csv</span>
-    </v-tooltip>
+        <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+                <v-btn class="export_button color-white" small v-bind="attrs" v-on="on" @click="exportToCsv">
+                    <span class=""><v-icon color="primary" small >mdi-microsoft-excel</v-icon></span>
+                </v-btn>
+            </template>
+            <span style="font-size: 12px;">Export to csv</span>
+        </v-tooltip>
 
         <aside :class="enabled ? '' : 'hidden'" class="menu_modal" @dragstart="onDragStart" @dragover="onDragOver" @dragend="onDragEnd">
             <div class="flex justify-between menu_header">
