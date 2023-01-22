@@ -9,7 +9,7 @@
                     v-bind="attrs"
                     v-on="on"
                     @click="enabled = !enabled"
-                    class="menu_icon color-white"
+                    class="menu_button color-white"
                 >
                     <v-icon color="primary" small>mdi-cog</v-icon>
                 </v-btn>
@@ -19,20 +19,39 @@
 
         <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-                <v-btn class="export_button color-white" small v-bind="attrs" v-on="on" @click="exportToCsv">
-                    <span class=""><v-icon color="primary" small >mdi-microsoft-excel</v-icon></span>
+                <v-btn
+                    elevation="0"
+                    absolute
+                    small
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="exportToCsv"
+                    class="export_button color-white"
+                >
+                    <v-icon color="primary" small>mdi-microsoft-excel</v-icon>
                 </v-btn>
             </template>
             <span style="font-size: 12px;">Export to csv</span>
         </v-tooltip>
 
-        <aside v-show="enabled" class="menu_modal" @dragstart="onDragStart" @dragover="onDragOver" @dragend="onDragEnd">
+        <aside
+            v-show="enabled"
+            class="menu_modal"
+            @dragstart="onDragStart"
+            @dragover="onDragOver"
+            @dragend="onDragEnd"
+        >
             <div class="flex justify-between menu_header">
                 <strong>Visible</strong>
                 <strong>Column</strong>
                 <strong>Width</strong>
             </div>
-            <div v-for="header in items" :key="header.value" class="flex justify-between items-center menu_item" draggable="true">
+            <div
+                v-for="header in items"
+                :key="header.value"
+                class="flex justify-between items-center menu_item"
+                draggable="true"
+            >
                 <input type="checkbox" v-model="header.columnDefinition.enabled">
                 <div class="" style="width: 50%">
                     <p class="text-left capitalize">{{ header.value }}</p>
@@ -53,7 +72,12 @@
                     :disabled="!hasFixedWidths"
                     @click="hasFixedWidths ? toggleFixedWidth(false) : ''"
                 >Reset</v-btn>
-                <v-btn small color="primary" class="primary_button" @click="enabled = false">Close</v-btn>
+                <v-btn
+                    small
+                    color="primary"
+                    class="primary_button"
+                    @click="enabled = false"
+                >Close</v-btn>
             </div>
         </aside>
    </div>
@@ -72,7 +96,7 @@
 .menu {
     position: relative
 }
-.menu_icon {
+.menu_button {
     position: absolute;
     top: 2px;
     right: 26px;
