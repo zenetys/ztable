@@ -26,7 +26,7 @@
             <span style="font-size: 12px;">Export to csv</span>
         </v-tooltip>
 
-        <aside :class="enabled ? '' : 'hidden'" class="menu_modal" @dragstart="onDragStart" @dragover="onDragOver" @dragend="onDragEnd">
+        <aside v-show="enabled" class="menu_modal" @dragstart="onDragStart" @dragover="onDragOver" @dragend="onDragEnd">
             <div class="flex justify-between menu_header">
                 <strong>Visible</strong>
                 <strong>Column</strong>
@@ -108,9 +108,6 @@
 }
 .justify-between {
     justify-content: space-between;
-}
-.hidden {
-    display: none;
 }
 .disabled {
     color: rgba(0, 0, 0, 0.5);
