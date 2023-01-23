@@ -29,7 +29,7 @@
                     <tr v-else-if="isLoading" class="v-data-table__empty-wrapper">
                         <td :colspan="headers.length" class="pt-3">Loading...</td>
                     </tr>
-                    <tr v-else-if="items && items.length == 0" class="v-data-table__empty-wrapper">
+                    <tr v-else-if="items && items.length === 0" class="v-data-table__empty-wrapper">
                         <td :colspan="headers.length" class="pt-3">No data</td>
                     </tr>
                     <tr
