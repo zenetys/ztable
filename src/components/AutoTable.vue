@@ -11,21 +11,21 @@
             @width="onWidthChange"
         />
         <v-data-table
-            :id="id"
+            :id="tableConfig.id"
             :headers="computedHeaders"
             :items="formattedTableItems"
-            :search="search"
+            :search="tableConfig.search"
             class="auto-table"
             :class="hasFixedWidths ? '' : 'sizable'"
-            :item-class="itemClass"
+            :item-class="tableConfig.itemClass"
             dense
-            item-key="id"
+            item-key="tableConfig.id"
             fixed-header
             :height="tableHeight"
             :footer-props="tableFooterProps"
             mobile-breakpoint="0"
-            :disable-pagination="!isPaginated"
-            :hide-default-footer="!isPaginated"
+            :disable-pagination="!tableConfig.paginated"
+            :hide-default-footer="!tableConfig.paginated"
             :hide-default-header="true"
             :custom-sort="customSort"
             :loading="isLoading"
@@ -92,7 +92,7 @@
                         v-else
                         v-for="(item, itemIndex) in items"
                         :key="itemIndex"
-                        v-on="itemClick ? { click: (ev) => itemClick(item, ev) } : {}"
+                        v-on="tableConfig.clickable ? { click: (ev) => tableConfig.clickable(item, ev) } : {}"
                         :class="getRowClass(item)"
                     >
                         <td
@@ -144,7 +144,7 @@
                             <span
                                 v-if="header.columnDefinition.copyable"
                                 class="cp-span mdi mdi-content-copy"
-                                @click="copyCellContent(id, headerIndex, itemIndex, $event)"
+                                @click="copyCellContent(tableConfig.id, headerIndex, itemIndex, $event)"
                             >
                                 <span class="cell-copied-tooltip">Copied!</span>
                             </span>
@@ -472,21 +472,6 @@ export default {
         },
     },
     computed: {
-        id() {
-            return this.tableConfig.id || 'auto-table';
-        },
-        isPaginated() {
-            return this.tableConfig.paginated ? true : false;
-        },
-        search() {
-            return this.tableConfig.search || '';
-        },
-        itemClass() {
-            return this.tableConfig.itemClass || '';
-        },
-        itemClick() {
-            return this.tableConfig.clickable || null;
-        },
         formattedTableItems() {
             return this.tableItems?.map((item, index) => ({
                 id: index,
@@ -705,7 +690,7 @@ export default {
          */
         computeAutoTableHeight() {
             let tableHeight = 0;
-            const id = this.id;
+            const id = this.tableConfig.id;
             const table = document.getElementById(id);
 
             if (table) {
