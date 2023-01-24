@@ -433,6 +433,10 @@ function copyToClipboard(textToCopy) {
     });
 }
 
+/* COMPONENT DEFAULTS */
+
+const DEFAULT_FIXED_COLUMN_WIDTH = 100;
+
 const defaultColumnDefinition = {
     formatHtml: undefined,
     formatText: (value) => value,
@@ -441,7 +445,7 @@ const defaultColumnDefinition = {
     enabled: true,
     cssClass: () => '',
     cssStyle: () => '',
-    order: 999,
+    order: undefined,
     sortable: true,
     truncable: true,
     copyable: true,
@@ -495,7 +499,15 @@ export default {
             }));
         },
         computedHeaders() {
-            return this.headers.filter((header) => header.columnDefinition.enabled);
+            return this.headers.filter((header) => header.enabled);
+        },
+        preferencesStateData() {
+            return [
+                this.headers,
+                this.sortBy,
+                this.sortDesc,
+                this.hasFixedWidths,
+            ];
         },
     },
     data() {
@@ -506,6 +518,7 @@ export default {
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             error: undefined,
             headers: [],
+            headersByName: {},
             resizeCurCol: undefined,
             resizeNextCol: undefined,
             resizeInitialX: undefined,
@@ -541,12 +554,11 @@ export default {
             },
         },
         tableItems: {
-            immediate: true,
             handler() {
                 this.extractHeadersFromData();
             },
         },
-        headers: {
+        preferencesStateData: {
             handler() {
                 this.savePreferences();
             },
@@ -755,15 +767,27 @@ export default {
             return items.sort((a, b) => cmpFn(a[sortBy], b[sortBy]) * (isDesc ? -1 : 1));
         },
         savePreferences() {
+            const newPreferences = {
+                hasFixedWidths: this.hasFixedWidths,
+                sortBy: this.sortBy,
+                sortDesc: this.sortDesc,
+            };
+            newPreferences.columns = Object.assign({}, this.preferences?.columns);
             this.headers.forEach((header, i) => {
                 const data = {
-                    width: header.width || null,
-                    enabled: header.columnDefinition.enabled,
+                    width: header.width,
+                    enabled: header.enabled,
                     order: i,
                 };
-                this.preferences[header.value] = data;
+                newPreferences.columns[header.value] = data;
             });
-            localStorage.setItem(this.tableConfig.id, JSON.stringify(this.preferences));
+            this.preferences = newPreferences;
+
+            /* persist to localStorage */
+            const newPreferencesJson = JSON.stringify(this.preferences);
+            console.log('AutoTable: savePreferences:', newPreferencesJson);
+            try { localStorage.setItem(this.tableConfig.id, newPreferencesJson); }
+            catch (e) { console.error('AutoTable: savePreferences: localStorage.setItem failed:', e); }
         },
         exportToCsv(data) {
             const csv = [];
@@ -821,15 +845,13 @@ export default {
          * Extract headers from tableItems, run the processing of headers,
          * and setup columns from the config in the headers
          */
-        extractHeadersFromData() {
-            if (!this.tableItems || this.tableItems.length == 0)
-                return [{}]; /* no data */
-
-            const headersByName = {};
+        extractHeadersFromData(resetState) {
+            let tableItems = this.tableItems || [];
+            let headersByName = {};
             const headers = [];
 
             // Store every unique header key
-            this.tableItems?.forEach((item) => {
+            tableItems.forEach((item) => {
                 for (const key in item) {
                     if (!headersByName[key]) {
                         const header = { value: key };
@@ -840,20 +862,39 @@ export default {
             });
 
             // Run custom processing of headers
-            if (typeof this.tableConfig.customHeadersComputation === 'function')
+            if (typeof this.tableConfig.customHeadersComputation === 'function') {
                 this.tableConfig.customHeadersComputation(headers);
-
-            if (localStorage.getItem(this.tableConfig.id)) {
-                const preferences = JSON.parse(localStorage.getItem(this.tableConfig.id));
-                this.preferences = preferences;
+                headersByName = headers.reduce((o, h) => { o[h.value] = h; return o; }, {});
             }
 
-            // Set up columns and potentially discard hidden ones (splice),
-            // hence the reverse loop
-            let i = headers.length;
-            while (i--) {
+            this.preferences = JSON.parse(localStorage.getItem(this.tableConfig.id));
+            console.log('AutoTable: extractHeadersFromData: preferences:', JSON.stringify(this.preferences))
+
+            const getColumnPreference = (header, prefName, defaultValue) => {
+                if (!resetState && this.preferences?.columns?.[header.value]?.[prefName] !== undefined)
+                    return this.preferences.columns[header.value][prefName]; // saved value
+                else if (!resetState && this.headersByName?.[header.value]?.[prefName] !== undefined)
+                    return this.headersByName[header.value][prefName]; // current value
+                else if (header.columnDefinition?.[prefName] !== undefined)
+                    return header.columnDefinition[prefName]; // column definition
+                else if (defaultValue !== undefined)
+                    return defaultValue; // default
+            }
+            const getGlobalPreference = (prefName, defaultValue) => {
+                if (!resetState && this.preferences?.[prefName] !== undefined)
+                    return this.preferences[prefName]; // saved value
+                else if (!resetState && this?.[prefName] !== undefined)
+                    return this[prefName]; // current value
+                else if (defaultValue !== undefined)
+                    return defaultValue; // default
+            }
+
+            this.hasFixedWidths = getGlobalPreference('hasFixedWidths', false);
+            this.sortBy = getGlobalPreference('sortBy', '');
+            this.sortDesc = getGlobalPreference('sortDesc', false);
+
+            for (let i = 0; i < headers.length; i++) {
                 const header = headers[i];
-                const preference = this.preferences[header.value];
                 const columnDefinition = Object.assign(
                     {},
                     defaultColumnDefinition,
@@ -862,26 +903,21 @@ export default {
 
                 header.text ??= columnDefinition.label
                     ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
-                header.divider = true;
+                header.divider = true; // FIXME: useless ?
                 header.columnDefinition = columnDefinition;
-                header.width  = 'auto';
                 if (typeof header.columnDefinition.sortable === "function") {
                     this.sortableFunctions[header.value] = header.columnDefinition.sortable;
                 }
 
-                if (preference) {
-                    header.width = preference.width;
-                    header.columnDefinition.order = preference.order;
-                    if (typeof preference.enabled === "boolean")
-                        header.columnDefinition.enabled = preference.enabled;
-                }
+                header.enabled = getColumnPreference(header, 'enabled', true);
+                header.order = getColumnPreference(header, 'order', i);
+                header.width = getColumnPreference(header, 'width',
+                    this.hasFixedWidths ? DEFAULT_FIXED_COLUMN_WIDTH : undefined);
             }
-            headers.sort((a, b) => a.columnDefinition.order - b.columnDefinition.order);
-            headers.map((el, i) => el.columnDefinition.order = el.columnDefinition.order === 999 ? i : el.columnDefinition.order);
+
+            headers.sort((a, b) => a.order - b.order);
+            this.headersByName = headersByName;
             this.headers = headers;
-            if (this.preferences['hasFixedWidths']) {
-                this.hasFixedWidths = true;
-            }
         },
 
         /* COLUMN MOVE / DRAG */
