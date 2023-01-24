@@ -315,7 +315,7 @@ tbody .v-data-table__divider span {
 }
 
 .autotable-drag-border {
-    border-left: 1px dashed black;
+    border-left: 1px dashed red;
 }
 
 #__column-options-button {
@@ -513,8 +513,8 @@ export default {
             hasFixedWidths: false,
             dragEl: null,
             nextEl: null,
-            oldIndex: 0,
-            newIndex: 0,
+            oldIndex: -1,
+            newIndex: -1,
             preferences: {},
             sortableFunctions: {},
             sortDesc: false,
@@ -880,6 +880,9 @@ export default {
                 this.hasFixedWidths = true;
             }
         },
+
+        /* COLUMN MOVE / DRAG */
+
         /**
          * The DragStart handler
          * assignes the dragEl from the event.target.
@@ -889,7 +892,7 @@ export default {
             this.dragEl = evt.target;
 
             this.oldIndex = this.headers.findIndex((e) => {
-                return e.text === this.dragEl.textContent;
+                return e.value === this.dragEl.getAttribute('data-col-name');
             });
 
             /* Limiting the movement type */
@@ -915,19 +918,17 @@ export default {
          * @param { Event } evt - the evenement from the dragend event.
          */
         onDragEnd() {
-            if (!this.nextEl) {
-                return;
-            }
-
             this.newIndex = this.headers.findIndex((e) => {
-                return e.text === this.nextEl.textContent;
+                return e.value === this.nextEl.getAttribute('data-col-name');
             });
 
             if (this.nextEl) {
                 this.nextEl.classList.remove('autotable-drag-border');
             }
 
-            if (this.newIndex !== this.oldIndex) {
+            if (this.oldIndex != -1 && this.newIndex != -1 &&
+                this.newIndex !== this.oldIndex) {
+
                 /* Operate swap from oldIndex to newIndex */
                 this.headers.splice(
                     this.newIndex < this.oldIndex ? this.newIndex : this.newIndex - 1,
@@ -935,6 +936,12 @@ export default {
                     ...this.headers.splice(this.oldIndex, 1)
                 );
             }
+
+            /* reset for next run */
+            this.dragEl = null;
+            this.nextEl = null;
+            this.oldIndex = -1;
+            this.newIndex = -1;
         },
 
         /* COLUMN RESIZE */
