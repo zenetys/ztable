@@ -511,10 +511,10 @@ export default {
             resizeInitialX: undefined,
             resizeCurHeader: null,
             hasFixedWidths: false,
-            dragEl: null,
-            nextEl: null,
-            oldIndex: -1,
-            newIndex: -1,
+            dragCurEl: null,
+            dragNextEl: null,
+            dragOldIndex: -1,
+            dragNewIndex: -1,
             preferences: {},
             sortableFunctions: {},
             sortDesc: false,
@@ -885,14 +885,14 @@ export default {
 
         /**
          * The DragStart handler
-         * assignes the dragEl from the event.target.
+         * assignes the dragCurEl from the event.target.
          * @param { Event } evt - the evenement from the dragstart event.
          */
         onDragStart(evt) {
-            this.dragEl = evt.target;
+            this.dragCurEl = evt.target;
 
-            this.oldIndex = this.headers.findIndex((e) => {
-                return e.value === this.dragEl.getAttribute('data-col-name');
+            this.dragOldIndex = this.headers.findIndex((e) => {
+                return e.value === this.dragCurEl.getAttribute('data-col-name');
             });
 
             /* Limiting the movement type */
@@ -900,48 +900,48 @@ export default {
         },
         /**
          * The DragOver handler
-         * only assignes the nextEl if the event.target is different from the dragEl.
+         * only assignes the dragNextEl if the event.target is different from the dragCurEl.
          * @param { Event } evt - the evenement from the dragover event.
          */
         onDragOver(evt) {
-            if (this.nextEl) {
-                this.nextEl.classList.remove('autotable-drag-border');
+            if (this.dragNextEl) {
+                this.dragNextEl.classList.remove('autotable-drag-border');
             }
-            if (evt.target && evt.target !== this.dragEl && evt.target.nodeName == 'TH') {
-                this.nextEl = evt.target;
-                this.nextEl.classList.add('autotable-drag-border');
+            if (evt.target && evt.target !== this.dragCurEl && evt.target.nodeName == 'TH') {
+                this.dragNextEl = evt.target;
+                this.dragNextEl.classList.add('autotable-drag-border');
             }
         },
         /**
          * The DragEnd handler
-         * defines oldIndex and newIndex and perfoms the swap on new array, then saves it.
+         * defines dragOldIndex and dragNewIndex and perfoms the swap on new array, then saves it.
          * @param { Event } evt - the evenement from the dragend event.
          */
         onDragEnd() {
-            this.newIndex = this.headers.findIndex((e) => {
-                return e.value === this.nextEl.getAttribute('data-col-name');
+            this.dragNewIndex = this.headers.findIndex((e) => {
+                return e.value === this.dragNextEl.getAttribute('data-col-name');
             });
 
-            if (this.nextEl) {
-                this.nextEl.classList.remove('autotable-drag-border');
+            if (this.dragNextEl) {
+                this.dragNextEl.classList.remove('autotable-drag-border');
             }
 
-            if (this.oldIndex != -1 && this.newIndex != -1 &&
-                this.newIndex !== this.oldIndex) {
+            if (this.dragOldIndex != -1 && this.dragNewIndex != -1 &&
+                this.dragNewIndex !== this.dragOldIndex) {
 
                 /* Operate swap from oldIndex to newIndex */
                 this.headers.splice(
-                    this.newIndex < this.oldIndex ? this.newIndex : this.newIndex - 1,
+                    this.dragNewIndex < this.dragOldIndex ? this.dragNewIndex : this.dragNewIndex - 1,
                     0,
-                    ...this.headers.splice(this.oldIndex, 1)
+                    ...this.headers.splice(this.dragOldIndex, 1)
                 );
             }
 
             /* reset for next run */
-            this.dragEl = null;
-            this.nextEl = null;
-            this.oldIndex = -1;
-            this.newIndex = -1;
+            this.dragCurEl = null;
+            this.dragNextEl = null;
+            this.dragOldIndex = -1;
+            this.dragNewIndex = -1;
         },
 
         /* COLUMN RESIZE */
