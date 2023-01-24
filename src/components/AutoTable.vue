@@ -47,7 +47,7 @@
                             v-for="header in headers"
                             :key="header.value"
                             :draggable="true"
-                            @click.stop="sortCol(header)"
+                            @mouseup="sortCol(header)"
                         >
                             <span>{{header.text}}<v-icon
                                 v-if="header.columnDefinition.sortable"
@@ -618,6 +618,10 @@ export default {
             });
         },
         sortCol(header) {
+            if (this.curCol) {
+                console.log('AutoTable: sortCol: Resize in progress, cancel event');
+                return;
+            }
             if (header.columnDefinition.sortable === false) {
                 return;
             }
