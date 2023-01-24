@@ -894,7 +894,7 @@ export default {
             });
             this.pageX = e.pageX;
 
-            window.addEventListener('mousemove', this.resizeCol, false);
+            window.addEventListener('mousemove', this.onResizeMouseMove, false);
             window.addEventListener('mouseup', this.onResizeMouseUp, false);
         },
         /**
@@ -928,7 +928,7 @@ export default {
             this.curHeader = null;
             this.pageX = 0;
 
-            window.removeEventListener('mousemove', this.resizeCol, false);
+            window.removeEventListener('mousemove', this.onResizeMouseMove, false);
             window.removeEventListener('mouseup', this.onResizeMouseUp, false);
         },
         /**
@@ -940,7 +940,7 @@ export default {
          * @param {Event} e - DOM event triggered on mousemove when dragging
          *      a column edge to resize it.
          */
-        resizeCol(e) {
+        onResizeMouseMove(e) {
             if (!this.curCol || !this.curHeader) {
                 return;
             }
