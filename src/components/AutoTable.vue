@@ -498,6 +498,10 @@ export default {
                 ...item,
             }));
         },
+        /**
+         * Table headers filtered on enabled columns. Vue does not like the
+         * use of a v-if in a v-for loop (vue/no-use-v-if-with-v-for).
+         */
         computedHeaders() {
             return this.headers.filter((header) => header.enabled);
         },
