@@ -627,30 +627,6 @@ export default {
             }
             return tableHeight;
         },
-        /**
-         * Copy cell content to clipboard
-         * @param {string} rootId - DOM id of the auto-table instance
-         * @param {number} colIndex - Column index starting from 0
-         * @param {number} rowIndex - Row index starting from 0
-         */
-        copyCellContent(rootId, colIndex, rowIndex) {
-            const selector = `#${rootId} tbody > tr:nth-child(${rowIndex + 1}) > td:nth-child(${colIndex + 1})`;
-            const elementToCopy = document.querySelector(selector);
-
-            if (!elementToCopy || elementToCopy.innerText === undefined) {
-                return; /* not found */
-            }
-
-            copyToClipboard(elementToCopy.innerText).then(() => {
-                const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
-                if (tooltipElement) {
-                    tooltipElement.style = 'visibility:visible;';
-                    setTimeout(() => {
-                        tooltipElement.style = '';
-                    }, 400);
-                }
-            });
-        },
         sortCol(header) {
             if (this.curCol) {
                 console.log('AutoTable: sortCol: Resize in progress, cancel event');
@@ -966,6 +942,30 @@ export default {
             const spanCopyIcon = ev.target.querySelector('span.cp-span');
             if (spanCopyIcon)
                 spanCopyIcon.classList.remove('d-block');
+        },
+        /**
+         * Copy cell content to clipboard
+         * @param {string} rootId - DOM id of the auto-table instance
+         * @param {number} colIndex - Column index starting from 0
+         * @param {number} rowIndex - Row index starting from 0
+         */
+        copyCellContent(rootId, colIndex, rowIndex) {
+            const selector = `#${rootId} tbody > tr:nth-child(${rowIndex + 1}) > td:nth-child(${colIndex + 1})`;
+            const elementToCopy = document.querySelector(selector);
+
+            if (!elementToCopy || elementToCopy.innerText === undefined) {
+                return; /* not found */
+            }
+
+            copyToClipboard(elementToCopy.innerText).then(() => {
+                const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
+                if (tooltipElement) {
+                    tooltipElement.style = 'visibility:visible;';
+                    setTimeout(() => {
+                        tooltipElement.style = '';
+                    }, 400);
+                }
+            });
         },
     },
     mounted() {
