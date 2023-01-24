@@ -825,15 +825,18 @@ export default {
             if (!this.tableItems || this.tableItems.length == 0)
                 return [{}]; /* no data */
 
+            const headersByName = {};
             const headers = [];
 
             // Store every unique header key
             this.tableItems?.forEach((item) => {
-                Object.keys(item).forEach((key) => {
-                    if (!headers.some((header) => header.value === key)) {
-                        headers.push({ value: key });
+                for (const key in item) {
+                    if (!headersByName[key]) {
+                        const header = { value: key };
+                        headersByName[key] = header;
+                        headers.push(header);
                     }
-                });
+                }
             });
 
             // Run custom processing of headers
