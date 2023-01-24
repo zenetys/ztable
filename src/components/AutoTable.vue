@@ -227,6 +227,14 @@ tbody .v-data-table__divider span {
             /* position relative needed for the copy button icon */
             position: relative;
 
+            &.truncable {
+                max-width: 0;
+                > span:not(.cp-span) {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+
             &:not(.nocp) {
                 padding-right: 18px !important;
             }
@@ -320,6 +328,7 @@ const defaultColumnDefinition = {
     cssStyle: () => '',
     order: 999,
     sortable: true,
+    truncable: true,
 };
 
 const defaultConfig = {
@@ -498,7 +507,7 @@ export default {
 
             const elements = [
                 'cssClass', 'cssStyle', 'formatText', 'formatHtml', 'tooltip',
-                'sortable', 'clickable',
+                'sortable', 'clickable', 'truncable',
             ];
 
             Object.keys(config.columns).forEach((header) => {
@@ -542,7 +551,9 @@ export default {
          *      given header (column) and row object.
          */
         getCellClass(header, tableItem) {
-            return header.columnDefinition.cssClass(tableItem) + ' v-data-table__divider col_' + header.value;
+            return header.columnDefinition.cssClass(tableItem) +
+                ' v-data-table__divider col_' + header.value +
+                (header.columnDefinition.truncable ? ' truncable' : '');
         },
         /**
          * Set the height of the table
