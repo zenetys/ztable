@@ -30,7 +30,7 @@
             :hide-default-header="true"
             :custom-sort="customSort"
             :loading="isLoading"
-            :options="{ sortBy, sortDesc}"
+            :options="{ sortBy, sortDesc }"
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead id="autotable_header">
@@ -50,10 +50,18 @@
                             @mouseup="sortCol(header)"
                             :data-col-name="header.value"
                         >
-                            <span>{{header.text}}<v-icon
-                                v-if="header.columnDefinition.sortable"
-                                style="margin-left: 1em"
-                            >mdi-arrow-{{ header.sortDesc ? 'up' : 'down'}}</v-icon></span>
+                            <span>{{ header.text }}<template
+                                v-if="header.columnDefinition.sortable">
+                                    <v-icon
+                                        v-if="sortBy === header.value"
+                                        class="header-sort-icon"
+                                    >mdi-arrow-{{ sortDesc ? 'up' : 'down' }}</v-icon>
+                                    <v-icon
+                                        v-else
+                                        class="header-sort-icon header-sort-icon--inactive"
+                                    >mdi-arrow-down</v-icon>
+                                </template>
+                            </span>
                             <div @mousedown.stop="onResizeMouseDown" @click.stop class="resizeElement"></div>
                         </th>
                     </tr>
@@ -215,6 +223,16 @@ tbody .v-data-table__divider span {
             display: block;
             width: 100%;
         }
+
+        .header-sort-icon {
+            margin-left: 0.8em;
+        }
+        .header-sort-icon--inactive {
+            color: transparent;
+        }
+        &:hover .header-sort-icon--inactive {
+            color: #d2d2d2;
+        }
     }
 
     .v-progress-linear--absolute {
@@ -318,6 +336,19 @@ tbody .v-data-table__divider span {
 <script>
 import axios from 'axios';
 import AutoTableMenu from '@/components/AutoTableMenu.vue';
+
+/**
+ * Helpers independant of the component instance that may be exported with
+ * the component under <component>.utils.
+ **/
+
+function cmpString(a, b) {
+    if (typeof(a) !== 'string')
+        a = String(a ?? '').toLowerCase();
+    if (typeof(b) !== 'string')
+        b = String(b ?? '').toLowerCase();
+    return a > b ? 1 : (a < b ? -1 : 0);
+}
 
 /**
  * Wrapper to navigator.clipboard.writeText() with fallback tentative
@@ -648,27 +679,17 @@ export default {
             if (header.columnDefinition.sortable === false) {
                 return;
             }
+            /* toggle direction only if sort column has changed */
+            if (this.sortBy === header.value)
+                this.sortDesc = !this.sortDesc;
+            else
+                this.sortDesc = false;
+            /* set sort column */
             this.sortBy = header.value;
-            header.sortDesc = !header.sortDesc;
-            this.sortDesc = header.sortDesc;
         },
         customSort(items, sortBy, isDesc) {
-            function sortFunction(a, b, sortBy) {
-                if (a[sortBy] > b[sortBy] || a[sortBy] === null && b[sortBy] !== null) {
-                    return -1;
-                }
-                if (a[sortBy] < b[sortBy] || b[sortBy] === null && a[sortBy] !== null) {
-                    return 1;
-                }
-                // a must be equal to b
-                return 0;
-            }
-
-            const sort = this.sortableFunctions[sortBy] || sortFunction;
-            return items.sort((a, b) => {
-                const res = isDesc ? sort(a, b, sortBy) : sort(b, a, sortBy);
-                return res;
-            });
+            const cmpFn = this.sortableFunctions[sortBy] || cmpString;
+            return items.sort((a, b) => cmpFn(a[sortBy], b[sortBy]) * (isDesc ? -1 : 1));
         },
         savePreferences() {
             this.headers.forEach((header, i) => {
@@ -1011,6 +1032,12 @@ export default {
     },
     destroyed() {
         window.removeEventListener('resize', this.setTableHeight);
+    },
+
+    /* EXPORTED HELPERS */
+
+    utils: {
+        cmpString,
     },
 };
 </script>
