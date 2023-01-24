@@ -1,16 +1,15 @@
 <template>
     <v-card class="elevation-0">
-        <div class="showIcons" @mouseover="showIcons = true" @mouseleave="showIcons = false">
-            <AutoTableMenu
-                :style="showIcons === true ? 'display: block' : 'display: none'"
-                :show="showIcons"
-                :items="headers"
-                :hasFixedWidths="hasFixedWidths"
-                @swapped="swapHeadersPositions($event)"
-                @toggle="changeFixedWidth($event)"
-                @export="exportToCsv(tableItems)"
-            />
-        </div>
+        <AutoTableMenu
+            :showIcons="showIcons"
+            :items="headers"
+            :hasFixedWidths="hasFixedWidths"
+            @swap="onColumnSwap"
+            @toggle="onColumnToggle"
+            @export="exportToCsv(tableItems)"
+            @reset="onReset"
+            @width="onWidthChange"
+        />
         <v-data-table
             :id="id"
             :headers="computedHeaders"
@@ -33,7 +32,11 @@
             :options="{ sortBy, sortDesc }"
         >
             <template v-slot:header="{ props: { headers } }">
-                <thead id="autotable_header">
+                <thead
+                    id="autotable_header"
+                    @mouseenter="showIcons = true"
+                    @mouseleave="showIcons = false"
+                >
                     <tr
                         @dragstart="onDragStart"
                         @dragover="onDragOver"
@@ -161,14 +164,6 @@
 </template>
 
 <style scoped lang="scss">
-.showIcons {
-    width: 200px;
-    height: 50px;
-    position: absolute;
-    top: 0;
-    right: 15px;
-    z-index: 9;
-}
 /* XXX Style needs review and cleanup! At the moment, it is too difficult
  * XXX to override table style without using !important. */
 .resizeElement {
@@ -830,21 +825,6 @@ export default {
             a.setAttribute('download', `${title}.csv`);
             a.click();
         },
-        changeFixedWidth($event) {
-            this.hasFixedWidths = $event;
-            this.preferences['hasFixedWidths'] = $event;
-            this.savePreferences()
-        },
-        /**
-         * Swap two headers positions in the table order and save the config in local storage.
-         * @param {number} position1 - the position of the first header
-         * @param {number} position2 - the position of the second header
-         */
-        swapHeadersPositions(e) {
-            let {oldIndex, newIndex} = e
-            newIndex = newIndex < oldIndex ? newIndex : newIndex - 1
-            this.headers.splice(newIndex, 0, ...this.headers.splice(oldIndex, 1));
-        },
         /**
          * Extract headers from tableItems, run the processing of headers,
          * and setup columns from the config in the headers
@@ -1140,6 +1120,38 @@ export default {
                     setTimeout(() => { tooltipElement.style = ''; }, 400);
                 }
             });
+        },
+
+        /* MENU EVENTS */
+
+        onReset() {
+            console.log('AutoTable: onReset: Received @reset from menu');
+            localStorage.removeItem(this.tableConfig.id);
+            this.extractHeadersFromData(true);
+        },
+        onWidthChange(header, width) {
+            console.log('AutoTable: onWidthChange: Received @width from menu:', header, width);
+            this.fixColumnsWidth();
+            header.width = width;
+        },
+        onColumnToggle(header, width) {
+            console.log('AutoTable: onColumnToggle: Received @toggle from menu:', header, width);
+            header.enabled = !header.enabled;
+            if (header.enabled && this.hasFixedWidths)
+                header.width = width ?? DEFAULT_FIXED_COLUMN_WIDTH;
+        },
+        /**
+         * Move an header from position <oldIndex> to position <newIndex>
+         * @param {number} oldIndex - current index of the header to move
+         * @param {number} newIndex - new position
+         */
+        onColumnSwap(oldIndex, newIndex) {
+            console.log('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
+            const movedHeader = this.headers[oldIndex];
+            if (movedHeader !== undefined) {
+                this.headers.splice(oldIndex, 1);
+                this.headers.splice(newIndex, 0, movedHeader);
+            }
         },
     },
     mounted() {
