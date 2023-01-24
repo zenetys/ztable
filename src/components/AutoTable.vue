@@ -46,7 +46,9 @@
                             v-for="header in headers"
                             :key="header.value"
                             :draggable="true"
+                            :style="getHeaderFixedWidthStyle(header)"
                             @mouseup="sortCol(header)"
+                            :data-col-name="header.value"
                         >
                             <span>{{header.text}}<v-icon
                                 v-if="header.columnDefinition.sortable"
@@ -163,13 +165,16 @@
  * XXX to override table style without using !important. */
 .resizeElement {
     content: '';
-    cursor: w-resize;
+    cursor: ew-resize;
     position: absolute;
     top: 0;
     right: 0;
     width: 10px;
     height: 100%;
     display: inline-block;
+}
+.resizeElement:hover {
+    background-color: #e2e2e2;
 }
 
 .auto-table * {
@@ -414,7 +419,6 @@ export default {
             error: undefined,
             headers: [],
             curCol: undefined,
-            curColWidth: undefined,
             nextCol: undefined,
             pageX: undefined,
             curHeader: null,
@@ -574,6 +578,15 @@ export default {
                 ' v-data-table__divider col_' + header.value + ' cell_' + header.value +
                 (header.columnDefinition.truncable ? ' truncable' : '') +
                 (header.columnDefinition.copyable ? ' copyable' : '');
+        },
+        getHeaderFixedWidthStyle(hEl) {
+            let style = ''
+            if (this.hasFixedWidths && hEl.width !== undefined) {
+                style += 'width: ' + hEl.width + 'px;';
+                style += ' min-width: ' + hEl.width + 'px;';
+                style += ' max-width: ' + hEl.width + 'px;';
+            }
+            return style;
         },
         /**
          * Set the height of the table
@@ -839,28 +852,57 @@ export default {
                 );
             }
         },
+
+        /* COLUMN RESIZE */
+
+        fixColumnsWidth() {
+            this.headers.forEach((el, i) => {
+                const colTh = document.querySelector('#' + this.tableConfig.id + ' th.col_'+el.value);
+                if (colTh) {
+                    const measuredWidth = colTh.getBoundingClientRect().width;
+                    console.log('AutoTable: fixColumnsWidth: i=', i, ', el=', el, ', headerWidth=', el.width,
+                        ', measuredWidth=', measuredWidth, ', cssWidth=', colTh.style.width);
+                    this.$set(el, 'width', measuredWidth);
+                }
+                else {
+                    console.log('AutoTable: fixColumnsWidth: i=', i, ', el=', el, ', headerWidth=', el.width,
+                        ', HIDDEN');
+                }
+            });
+            this.hasFixedWidths = true;
+        },
         /**
-         * Sets the mousedown listener for a th on mousedown
-         * if mouse position is in the last 10px and sets the mousemove listener if so.
-         * @param { HTMLElement } div - the div to set the listeners on.
+         * Event handler triggered on mousedown on a column edge, marking the
+         * start of a resize. It first measures and fix columns current widths
+         * to disable auto sizing. Here are set the mouse move/down event
+         * listeners for the <th> corresponding to the column being resized.
+         * @param {Event} e - DOM event triggered on mousedown on the edge of
+         *      the column to resize.
          */
         onResizeMouseDown(e) {
+            if (!this.hasFixedWidths) {
+                this.fixColumnsWidth();
+            }
+
             this.curCol = e.target.parentElement;
             this.nextCol = e.target.parentElement.nextElementSibling;
-            this.nextCol.draggable = false;
+            if (this.nextCol)
+                this.nextCol.draggable = false;
             this.curCol.draggable = false;
             this.curHeader = this.headers.find((e) => {
-                return e.text === this.curCol.textContent;
+                return e.value === this.curCol.getAttribute('data-col-name');
             });
             this.pageX = e.pageX;
-            this.curColWidth = this.curCol.offsetWidth;
 
             window.addEventListener('mousemove', this.resizeCol, false);
             window.addEventListener('mouseup', this.onResizeMouseUp, false);
         },
         /**
-         * Sets the new width if defined, and unsets related variables.
-         * @param { Event } evt - the evenement from the onmove event.
+         * Event handler triggered on mouseup to end the resize of a column.
+         * It commits the updated column width to Vue state and releases the
+         * mouse move/up event handlers.
+         * @param {Event} e - DOM event triggered on mouseup, marking the end
+         *      of a column resize.
          */
         onResizeMouseUp(e) {
             if (!this.curCol) {
@@ -868,46 +910,43 @@ export default {
             }
 
             if (this.pageX && this.curHeader) {
-                this.curHeader.width = this.curColWidth + e.pageX - this.pageX;
-                this.hasFixedWidths = true;
+                /* commit updated width to the header object */
+                const diffX = e.pageX - this.pageX;
+                const width = this.curHeader.width + diffX;
+                console.log('AutoTable: onResizeMouseUp, column=', this.curHeader.value,
+                    ', initialWidth=', this.curHeader.width, ', initialPageX=', this.pageX,
+                    ', e.pageX=', e.pageX, ', newWidth=', width);
+                this.curHeader.width = width;
             }
 
-            /* Resets Variables for next run */
-            this.nextCol.draggable = true;
+            /* Resets variables for next run */
+            if (this.nextCol)
+                this.nextCol.draggable = true;
             this.curCol.draggable = true;
             this.nextCol = undefined;
             this.curCol = undefined;
             this.curHeader = null;
-            this.curColWidth = 0;
             this.pageX = 0;
 
             window.removeEventListener('mousemove', this.resizeCol, false);
             window.removeEventListener('mouseup', this.onResizeMouseUp, false);
         },
         /**
-         * Calculates diff and the new width and sets it ont the html dom.
-         * @param { Event } evt - the evenement from the onmove event.
+         * Event handler triggered on mousemove during the resize of a column.
+         * It updates the column width style (DOM) during resize so that the
+         * updated width gets visible to the user, but without modifying Vue
+         * state variables to prevent multiple unnecessary refresh the
+         * component.
+         * @param {Event} e - DOM event triggered on mousemove when dragging
+         *      a column edge to resize it.
          */
         resizeCol(e) {
             if (!this.curCol || !this.curHeader) {
                 return;
             }
 
-            if (!this.hasFixedWidths) {
-                const elsHeader = document.querySelectorAll('#' + this.tableConfig.id + ' th');
-                elsHeader.forEach((el, i) => {
-                    const width = el.offsetWidth;
-                    this.headers[i].width = width;
-
-                    el.style.width = width + 'px';
-                    el.style.maxWidth = width + 'px';
-                    el.style.minWidth = width + 'px';
-                });
-                this.hasFixedWidths = true;
-                return;
-            }
             const diffX = e.pageX - this.pageX;
-            const width = this.curColWidth + diffX;
+            const width = this.curHeader.width + diffX;
 
             if (width > 20) {
                 this.curCol.style.width = width + 'px';
