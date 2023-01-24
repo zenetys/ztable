@@ -418,10 +418,10 @@ export default {
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             error: undefined,
             headers: [],
-            curCol: undefined,
-            nextCol: undefined,
-            pageX: undefined,
-            curHeader: null,
+            resizeCurCol: undefined,
+            resizeNextCol: undefined,
+            resizeInitialX: undefined,
+            resizeCurHeader: null,
             hasFixedWidths: false,
             dragEl: null,
             nextEl: null,
@@ -641,7 +641,7 @@ export default {
             return tableHeight;
         },
         sortCol(header) {
-            if (this.curCol) {
+            if (this.resizeCurCol) {
                 console.log('AutoTable: sortCol: Resize in progress, cancel event');
                 return;
             }
@@ -884,15 +884,15 @@ export default {
                 this.fixColumnsWidth();
             }
 
-            this.curCol = e.target.parentElement;
-            this.nextCol = e.target.parentElement.nextElementSibling;
-            if (this.nextCol)
-                this.nextCol.draggable = false;
-            this.curCol.draggable = false;
-            this.curHeader = this.headers.find((e) => {
-                return e.value === this.curCol.getAttribute('data-col-name');
+            this.resizeCurCol = e.target.parentElement;
+            this.resizeNextCol = e.target.parentElement.nextElementSibling;
+            if (this.resizeNextCol)
+                this.resizeNextCol.draggable = false;
+            this.resizeCurCol.draggable = false;
+            this.resizeCurHeader = this.headers.find((e) => {
+                return e.value === this.resizeCurCol.getAttribute('data-col-name');
             });
-            this.pageX = e.pageX;
+            this.resizeInitialX = e.pageX;
 
             window.addEventListener('mousemove', this.onResizeMouseMove, false);
             window.addEventListener('mouseup', this.onResizeMouseUp, false);
@@ -905,28 +905,28 @@ export default {
          *      of a column resize.
          */
         onResizeMouseUp(e) {
-            if (!this.curCol) {
+            if (!this.resizeCurCol) {
                 return;
             }
 
-            if (this.pageX && this.curHeader) {
+            if (this.resizeInitialX && this.resizeCurHeader) {
                 /* commit updated width to the header object */
-                const diffX = e.pageX - this.pageX;
-                const width = this.curHeader.width + diffX;
-                console.log('AutoTable: onResizeMouseUp, column=', this.curHeader.value,
-                    ', initialWidth=', this.curHeader.width, ', initialPageX=', this.pageX,
+                const diffX = e.pageX - this.resizeInitialX;
+                const width = this.resizeCurHeader.width + diffX;
+                console.log('AutoTable: onResizeMouseUp, column=', this.resizeCurHeader.value,
+                    ', initialWidth=', this.resizeCurHeader.width, ', initialPageX=', this.resizeInitialX,
                     ', e.pageX=', e.pageX, ', newWidth=', width);
-                this.curHeader.width = width;
+                this.resizeCurHeader.width = width;
             }
 
             /* Resets variables for next run */
-            if (this.nextCol)
-                this.nextCol.draggable = true;
-            this.curCol.draggable = true;
-            this.nextCol = undefined;
-            this.curCol = undefined;
-            this.curHeader = null;
-            this.pageX = 0;
+            if (this.resizeNextCol)
+                this.resizeNextCol.draggable = true;
+            this.resizeCurCol.draggable = true;
+            this.resizeNextCol = undefined;
+            this.resizeCurCol = undefined;
+            this.resizeCurHeader = null;
+            this.resizeInitialX = 0;
 
             window.removeEventListener('mousemove', this.onResizeMouseMove, false);
             window.removeEventListener('mouseup', this.onResizeMouseUp, false);
@@ -941,17 +941,17 @@ export default {
          *      a column edge to resize it.
          */
         onResizeMouseMove(e) {
-            if (!this.curCol || !this.curHeader) {
+            if (!this.resizeCurCol || !this.resizeCurHeader) {
                 return;
             }
 
-            const diffX = e.pageX - this.pageX;
-            const width = this.curHeader.width + diffX;
+            const diffX = e.pageX - this.resizeInitialX;
+            const width = this.resizeCurHeader.width + diffX;
 
             if (width > 20) {
-                this.curCol.style.width = width + 'px';
-                this.curCol.style.minWidth = width + 'px';
-                this.curCol.style.maxWidth = width + 'px';
+                this.resizeCurCol.style.width = width + 'px';
+                this.resizeCurCol.style.minWidth = width + 'px';
+                this.resizeCurCol.style.maxWidth = width + 'px';
             }
         },
 
