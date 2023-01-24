@@ -961,9 +961,7 @@ export default {
                 const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
                 if (tooltipElement) {
                     tooltipElement.style = 'visibility:visible;';
-                    setTimeout(() => {
-                        tooltipElement.style = '';
-                    }, 400);
+                    setTimeout(() => { tooltipElement.style = ''; }, 400);
                 }
             });
         },
