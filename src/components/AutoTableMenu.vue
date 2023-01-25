@@ -1,38 +1,43 @@
 <template>
     <div class="menu">
-        <v-tooltip bottom transition="none">
-            <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                    elevation="0"
-                    absolute
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="enabled = !enabled"
-                    class="menu_button color-white"
-                >
-                    <v-icon color="primary" small>mdi-cog</v-icon>
-                </v-btn>
-            </template>
-            <span>Open columns settings</span>
-        </v-tooltip>
-
-        <v-tooltip bottom transition="none">
-            <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                    elevation="0"
-                    absolute
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="exportToCsv"
-                    class="export_button color-white"
-                >
-                    <v-icon color="primary" small>mdi-microsoft-excel</v-icon>
-                </v-btn>
-            </template>
-            <span>Export to CSV</span>
-        </v-tooltip>
+        <div
+            @mouseenter="showIconsInternal = true"
+            @mouseleave="showIconsInternal = false"
+            class="icons-panel"
+        >
+            <div :style="iconsPanelVisibility">
+                <v-tooltip bottom transition="none">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            elevation="0"
+                            x-small
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="exportToCsv"
+                            class="export_button color-white mr-1"
+                        >
+                            <v-icon color="primary" small>mdi-microsoft-excel</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Export to CSV</span>
+                </v-tooltip>
+                <v-tooltip bottom transition="none">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            elevation="0"
+                            x-small
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="enabled = !enabled"
+                            class="menu_button color-white"
+                        >
+                            <v-icon color="primary" small>mdi-cog</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Open columns settings</span>
+                </v-tooltip>
+            </div>
+        </div>
 
         <aside
             v-show="enabled"
@@ -52,17 +57,26 @@
                 class="flex justify-between items-center menu_row"
                 draggable="true"
             >
-                <span><input type="checkbox" v-model="header.enabled" /></span>
-                <span v-if="header.text">{{ header.text }}</span>
-                <span v-else class="font-italic">{{ header.value }}</span>
                 <span>
                     <input
-                        v-model="header.width"
-                        :disabled="!header.columnDefinition.enabled"
-                        :class="!header.columnDefinition.enabled ? 'disabled' : ''"
+                        type="checkbox"
+                        :checked="header.enabled"
+                        @change="onColumnToggle(header)"
+                    />
+                </span>
+                <span>
+                    <p :data-col-name="header.value" v-if="header.text">{{ header.text }}</p>
+                    <p :data-col-name="header.value" v-else class="font-italic">{{ header.value }}</p>
+                </span>
+                <span>
+                    <input
+                        type="text"
+                        placeholder="none"
+                        :value="getColumnWidth(header)"
+                        :disabled="!header.enabled"
+                        :class="(header.enabled ? '' : 'disabled ') + (hasFixedWidths ? '' : 'font-italic')"
                         class="text-right"
-                        style="border-bottom: 1px dashed black;"
-                        @change="toggleFixedWidth(true)"
+                        @change="onWidthChange(header, $event)"
                     />
                 </span>
             </div>
@@ -71,11 +85,10 @@
                     x-small
                     color="red"
                     class="primary_button"
-                    :disabled="!hasFixedWidths"
-                    @click="hasFixedWidths ? toggleFixedWidth(false) : ''"
+                    @click="onResetButtonClicked"
                 >Reset</v-btn>
                 <v-btn
-                    small
+                    x-small
                     color="primary"
                     class="primary_button"
                     @click="enabled = false"
@@ -93,13 +106,20 @@
 .menu {
     position: relative
 }
-.v-btn.menu_button {
+.icons-panel {
     position: absolute;
-    top: 6px;
     right: 26px;
+    top: 4px;
     z-index: 10;
+}
+.icons-panel > div {
+    background-color: #fcfcfc;
+    padding: 0 2px;
+}
+.v-btn.menu_button {
     width: 20px;
     min-width: inherit;
+    top: -1px;
 }
 .menu_modal {
     background-color: rgba(255, 255, 255, 1);
@@ -155,6 +175,13 @@
     color: #ffffff;
     height: 23px;
 }
+p {
+    margin: 0;
+    font-size: inherit;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
 button,
 input {
     outline: none;
@@ -178,34 +205,48 @@ export default {
     props: {
         items: [],
         hasFixedWidths: Boolean,
-        show: Boolean,
+        showIcons: Boolean,
     },
-    emits: ['swapped', 'toggle', 'export'],
+    emits: ['swap', 'toggle', 'export', 'reset'],
     data() {
         return {
+            showIconsInternal: false,
             enabled: false,
-            oldIndex: 0,
-            newIndex: 0,
+            oldIndex: -1,
+            newIndex: -1,
             nextEl: null,
             dragEl: null,
+            measuredWidths: {},
         };
     },
+    computed: {
+        iconsPanelVisibility() {
+            if (this.enabled || this.showIcons || this.showIconsInternal)
+                return 'visibility: visible;';
+            else
+                return 'visibility: hidden;';
+        },
+    },
     watch: {
-        show: {
-            handler(newValue, oldValue) {
-                this.enabled = newValue === false ? false : oldValue;
-            },
+        enabled(cur) {
+            if (cur)
+                this.measureWidths();
         },
     },
     methods: {
+        getColumnWidth(header) {
+            let w = header.width ?? this.measuredWidths[header.value];
+            return (typeof w === 'number' && !isNaN(w)) ? Math.round(w) : undefined;
+        },
+        measureWidths() {
+            this.measuredWidths = {};
+            this.items.forEach((header) => {
+                const colTh = this.$el?.parentElement?.querySelector('th.col_' + header.value);
+                this.measuredWidths[header.value] = colTh?.getBoundingClientRect()?.width;
+            });
+        },
         exportToCsv() {
             this.$emit('export');
-        },
-        toggleFixedWidth(value) {
-            if (this.$props.hasFixedWidths === value) {
-                return;
-            }
-            this.$emit('toggle', value);
         },
         /**
          * The DragStart handler
@@ -216,7 +257,7 @@ export default {
             this.dragEl = evt.target.querySelector('p');
 
             this.oldIndex = this.items.findIndex((e) => {
-                return e.value === this.dragEl.textContent;
+                return e.value === this.dragEl.getAttribute('data-col-name');
             });
 
             /* Limiting the movement type */
@@ -237,9 +278,6 @@ export default {
             if (evt.target.nodeName == 'P') {
                 this.nextEl = evt.target;
             }
-            else {
-                this.nextEl = evt.target.querySelector('p');
-            }
             if (this.nextEl && this.nextEl !== this.dragEl) {
                 this.nextEl.parentElement.classList.add('menu-drag-class');
             }
@@ -250,27 +288,40 @@ export default {
          * @param { Event } evt - the evenement from the dragend event.
          */
         onDragEnd() {
-            if (!this.nextEl) {
-                return;
-            }
-            this.newIndex = this.items.findIndex((e) => {
-                return e.value === this.nextEl.textContent;
-            });
-
             if (this.nextEl) {
+                this.newIndex = this.items.findIndex((e) => {
+                    return e.value === this.nextEl.getAttribute('data-col-name');
+                });
                 this.nextEl.parentElement.classList.remove('menu-drag-class');
-            }
 
-            if (this.newIndex !== this.oldIndex) {
-                /* Operate swap from oldIndex to newIndex */
-
-                const { oldIndex, newIndex } = this;
-                this.$emit('swapped', { oldIndex, newIndex });
-                this.nextEl = null;
-                this.dragEl = null;
-                this.oldIndex = 0;
-                this.newIndex = 0;
+                if (this.newIndex !== -1 && this.oldIndex !== -1 &&
+                    this.newIndex !== this.oldIndex) {
+                    console.log('AutoTableMenu: Emit swap:', this.oldIndex, this.newIndex);
+                    this.$emit('swap', this.oldIndex, this.newIndex);
+                }
             }
+            this.nextEl = null;
+            this.dragEl = null;
+            this.oldIndex = -1;
+            this.newIndex = -1;
+        },
+        onResetButtonClicked() {
+            console.log('AutoTableMenu: Emit reset');
+            this.$emit('reset');
+            this.enabled = false;
+            this.$nextTick(function () { this.measureWidths(); });
+        },
+        onWidthChange(header, ev) {
+            let width = parseInt(ev.target.value, 10);
+            if (isNaN(width))
+                width = undefined;
+            console.log('AutoTableMenu: Emit width:', header, width);
+            this.$emit('width', header, width);
+        },
+        onColumnToggle(header) {
+            const givenWidth = this.getColumnWidth(header);
+            console.log('AutoTableMenu: Emit toggle:', header, givenWidth);
+            this.$emit('toggle', header, givenWidth);
         },
     },
 };
