@@ -40,6 +40,18 @@ a:link {
     bottom: 2vh !important;
     right: 2vw !important;
 }
+
+.v-data-footer,
+.v-data-footer__select {
+    height: 44px;
+}
+
+.v-data-footer {
+    position: absolute;
+    top: -44px;
+    right: 0;
+    z-index: 5;
+}
 </style>
 
 <script>
@@ -93,6 +105,7 @@ export default {
                     /* Move the index column to the first position */
                     headers.unshift(headers.splice(headers.length - 1, 1)[0]);
                 },
+                heightOffsets: [44],
             });
         },
         /**
