@@ -8,8 +8,9 @@
         />
         <v-main>
             <Breadcrumbs
-                v-if="DataManager.config && DataManager.config.dataType === 'generic'"
+                v-if="DataManager.config"
                 :path="DataManager.config.dataPath"
+                :mode="computedBreadcrumbsMode"
             />
             <AutoTable v-if="DataManager.tableData" :config="tableConfig" />
             <AutoObject v-if="DataManager.objectData" :object="DataManager.objectData" />
@@ -93,6 +94,13 @@ export default {
                     headers.unshift(headers.splice(headers.length - 1, 1)[0]);
                 },
             });
+        },
+        /**
+         * Sets the breadcrumbs component's mode depending on the data type
+         * @returns {string} the breadcrumbs mode
+         */
+        computedBreadcrumbsMode() {
+            return this.DataManager.config.dataType === 'generic' ? 'standard' : 'readonly';
         },
     },
     methods: {
