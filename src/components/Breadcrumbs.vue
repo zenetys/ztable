@@ -1,9 +1,14 @@
 <template>
     <div>
-        <v-btn title="Open Tree-view" icon color="primary" id="__panel-toggle-button" @click="toggleTreePanel">
-            <v-icon>
-                mdi-file-tree
-            </v-icon>
+        <v-btn
+            v-if="mode === 'standard'"
+            title="Open Tree-view"
+            icon
+            color="primary"
+            id="__panel-toggle-button"
+            @click="toggleTreePanel"
+        >
+            <v-icon> mdi-file-tree </v-icon>
         </v-btn>
         <v-breadcrumbs id="__breadcrumbs" :items="computedItems" divider=">"></v-breadcrumbs>
         <hr />
@@ -28,6 +33,11 @@
 
 <script>
 import { generateUrlFromPath } from '@/plugins/utils';
+
+/**
+ * @TODO - Update the documentation to reflect the addition of the new mode, once the doc update is merged.
+ */
+
 export default {
     name: 'breadcrumbs',
     props: {
@@ -36,6 +46,10 @@ export default {
          */
         path: {
             type: String,
+        },
+        mode: {
+            type: String,
+            default: 'standard',
         },
     },
     computed: {
@@ -48,7 +62,7 @@ export default {
             const splitPath = this.path.split('.');
             const rootItem = {
                 text: 'Root',
-                disabled: false,
+                disabled: this.mode === 'readonly',
                 href: generateUrlFromPath(''),
             };
 
@@ -59,7 +73,7 @@ export default {
                 const formattedItems = splitPath.map((level, index) => {
                     return {
                         text: level,
-                        disabled: false,
+                        disabled: this.mode === 'readonly',
                         href: this.getPathUpdateURL(index),
                     };
                 });
