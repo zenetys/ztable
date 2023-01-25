@@ -75,7 +75,9 @@
             </template>
 
             <template v-slot:body="{ items, headers }">
-                <tbody>
+                <tbody
+                    @dragover="onDragOver"
+                >
                     <tr v-if="error" class="v-data-table__empty-wrapper">
                         <td :colspan="headers.length" class="pt-3 red--text">
                             <div>An error has occurred!</div>
@@ -104,6 +106,7 @@
                                 ? { mouseenter: onMouseEnterBodyCell, mouseleave: onMouseLeaveBodyCell }
                                 : {}
                             "
+                            :data-col-name="header.value"
                         >
                             <span
                                 v-if="header.columnDefinition.formatHtml"
@@ -228,6 +231,13 @@ tbody .v-data-table__divider span {
         &:hover .header-sort-icon--inactive {
             color: #d2d2d2;
         }
+
+        &.autotable-drag-border {
+            background-color: #e5e5e5 !important;
+        }
+        &.autotable-drag-border > span {
+            text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        }
     }
 
     .v-progress-linear--absolute {
@@ -307,10 +317,6 @@ tbody .v-data-table__divider span {
             bottom: 4px;
         }
     }
-}
-
-.autotable-drag-border {
-    border-left: 1px dashed red;
 }
 
 #__column-options-button {
@@ -918,10 +924,16 @@ export default {
             if (this.dragNextEl) {
                 this.dragNextEl.classList.remove('autotable-drag-border');
             }
-            if (evt.target && evt.target !== this.dragCurEl && evt.target.nodeName == 'TH') {
-                this.dragNextEl = evt.target;
-                this.dragNextEl.classList.add('autotable-drag-border');
+            this.dragNextEl = evt.target.closest('th');
+            if (!this.dragNextEl) {
+                const tdEl = evt.target.closest('td');
+                if (tdEl) {
+                    const thSelector = '#' + this.tableConfig.id + ' th.col_' + tdEl.getAttribute('data-col-name');
+                    this.dragNextEl = document.querySelector(thSelector);
+                }
             }
+            if (this.dragNextEl)
+                this.dragNextEl.classList.add('autotable-drag-border');
         },
         /**
          * The DragEnd handler
