@@ -20,7 +20,7 @@
                 fab
                 absolute
                 bottom
-                left
+                right
                 class="__settings-btn"
                 @click="openConfigDialog"
             >
@@ -33,6 +33,11 @@
 <style lang="scss">
 a:link {
     text-decoration: none;
+}
+
+.__settings-btn {
+    bottom: 2vh !important;
+    right: 2vw !important;
 }
 </style>
 
