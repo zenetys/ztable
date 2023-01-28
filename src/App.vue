@@ -1,10 +1,10 @@
 <template>
     <v-app>
         <TreePanel
-            v-if="DataManager.apiData && DataManager.config.dataType === 'generic'"
+            v-if="DataManager.jsonData && DataManager.config.dataType === 'generic'"
             :path="DataManager.config.dataPath"
             :toggle-panel="$store.showTreePanel"
-            :api-data="DataManager.apiData"
+            :json-data="DataManager.jsonData"
         />
         <v-main>
             <Breadcrumbs
