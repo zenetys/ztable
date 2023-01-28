@@ -13,7 +13,7 @@ export default {
     }),
     _getItemClassesFromHeaderConfig: null,
     _dataTypes: ['generic', 'navitia'],
-    _apiData: null,
+    _jsonData: null,
     _headers: Vue.observable(null),
     _tableData: Vue.observable(null),
     _objectData: Vue.observable(null),
@@ -33,18 +33,18 @@ export default {
     },
 
     /**
-     * Get the value of apiData
-     * @returns {array} the value of apiData
+     * Get the value of jsonData
+     * @returns {array} the value of jsonData
      */
-    get apiData() {
-        return this._apiData;
+    get jsonData() {
+        return this._jsonData;
     },
     /**
-     * Change the value of apiData
-     * @param {array} value the new value of apiData
+     * Change the value of jsonData
+     * @param {array} value the new value of jsonData
      */
-    set apiData(value) {
-        this._apiData = value;
+    set jsonData(value) {
+        this._jsonData = value;
     },
 
     /**
@@ -161,9 +161,9 @@ export default {
 
         return this.apiPromise
             .then((response) => {
-                this.apiData = response?.data || null;
-                console.log('DataManager: data fetched from API: ', this.apiData);
-                return this.apiData;
+                this.jsonData = response?.data || null;
+                console.log('DataManager: data fetched from API: ', this.jsonData);
+                return this.jsonData;
             })
             .catch((error) => {
                 EventBus.$emit('error', error);
@@ -252,7 +252,7 @@ export default {
         }
 
         /* Data starting point is the API response */
-        let foundData = this.apiData;
+        let foundData = this.jsonData;
         let path = this.config.dataPath === '' ? null : this.config.dataPath.split('.');
 
         /* Try to find the data using the provided path */

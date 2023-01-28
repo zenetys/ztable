@@ -49,7 +49,7 @@ export default {
         togglePanel: {
             type: Boolean,
         },
-        apiData: {
+        jsonData: {
             type: [Object, Array],
         },
     },
@@ -193,7 +193,7 @@ export default {
         },
     },
     watch: {
-        apiData: {
+        jsonData: {
             immediate: true,
             handler(newData) {
                 this.handleNewData(newData);
