@@ -138,18 +138,18 @@ export default {
     },
 
     /**
-     * Get the value of apiPromise
-     * @returns {Promise} the value of apiPromise
+     * Get the value of dataPromise
+     * @returns {Promise} the value of dataPromise
      */
-    get apiPromise() {
-        return this._apiPromise;
+    get dataPromise() {
+        return this._dataPromise;
     },
     /**
-     * Change the value of apiPromise
-     * @param {Promise} value the new value of apiPromise
+     * Change the value of dataPromise
+     * @param {Promise} value the new value of dataPromise
      */
-    set apiPromise(value) {
-        this._apiPromise = value;
+    set dataPromise(value) {
+        this._dataPromise = value;
     },
 
     /**
@@ -157,9 +157,9 @@ export default {
      * @returns {Promise} the promise of the fetch from the API
      */
     fetchApiData() {
-        this.apiPromise = axios.get(this.config.dataUrl);
+        this.dataPromise = axios.get(this.config.dataUrl);
 
-        return this.apiPromise
+        return this.dataPromise
             .then((response) => {
                 this.jsonData = response?.data || null;
                 console.log('DataManager: data fetched from API: ', this.jsonData);
@@ -251,7 +251,7 @@ export default {
             }
         }
 
-        /* Data starting point is the API response */
+        /* Data starting point is the JSON data */
         let foundData = this.jsonData;
         let path = this.config.dataPath === '' ? null : this.config.dataPath.split('.');
 
