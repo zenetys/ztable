@@ -210,6 +210,9 @@ export default {
          * @param { Event } evt - the evenement from the dragover event.
          */
         onDragOver(evt) {
+            /* prevent animation seen on firefox on dragend */
+            evt.preventDefault();
+
             if (this.nextEl) {
                 this.nextEl.parentElement.classList.remove('menu-drag-class');
             }
