@@ -116,7 +116,11 @@ export default {
                     config_url: this.customConfigUrl,
                 };
 
-                this.$router.push({ query: updatedQuery });
+                this.$router.push({ query: updatedQuery }).catch((err) => {
+                    if (err.name !== 'NavigationDuplicated') {
+                        throw err;
+                    }
+                });
             }
 
             this.hideConfigDialog();

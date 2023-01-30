@@ -192,7 +192,11 @@ export default {
                 loadApiSpecificStyle(newType);
             } else {
                 /* Force page reload to remove API specific CSS files */
-                this.$router.replace(this.$route).catch(() => {});
+                this.$router.replace(this.$route).catch((err) => {
+                    if (err.name !== 'NavigationDuplicated') {
+                        throw err;
+                    }
+                });
             }
         },
     },
