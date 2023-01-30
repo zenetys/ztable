@@ -434,6 +434,10 @@ function copyToClipboard(textToCopy) {
     });
 }
 
+function arrayMove(array, from, to) {
+    array.splice(to, 0, ...array.splice(from, 1))
+}
+
 /* COMPONENT DEFAULTS */
 
 const DEFAULT_FIXED_COLUMN_WIDTH = 100;
@@ -953,11 +957,7 @@ export default {
                 this.dragNewIndex !== this.dragOldIndex) {
 
                 /* Operate swap from oldIndex to newIndex */
-                this.headers.splice(
-                    this.dragNewIndex < this.dragOldIndex ? this.dragNewIndex : this.dragNewIndex - 1,
-                    0,
-                    ...this.headers.splice(this.dragOldIndex, 1)
-                );
+                arrayMove(this.headers, this.dragOldIndex, this.dragNewIndex)
             }
 
             /* reset for next run */
@@ -1144,11 +1144,7 @@ export default {
          */
         onColumnSwap(oldIndex, newIndex) {
             console.log('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
-            const movedHeader = this.headers[oldIndex];
-            if (movedHeader !== undefined) {
-                this.headers.splice(oldIndex, 1);
-                this.headers.splice(newIndex, 0, movedHeader);
-            }
+            arrayMove(this.headers, oldIndex, newIndex);
         },
     },
     mounted() {
