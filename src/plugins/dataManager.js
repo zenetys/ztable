@@ -334,11 +334,35 @@ export default {
         });
     },
     /**
+     * Extract json data from raw text and set it as the data promise
+     * @param {string} text - the json text
+     */
+    extractJsonDataFromText(text) {
+        const data = JSON.parse(text);
+        /* Create new data promise */
+        this.dataPromise = new Promise((resolve) => {
+            resolve({ data });
+        });
+        /* Fetch the data from the promise */
+        this.fetchDataFromSource('text').then((data) => {
+            this.jsonData = data;
+            this.findDataFromPath();
+        });
+    },
+    /**
      * Load the data from a source file
      */
     loadFileData() {
         if (this.config.dataFile) {
             this.extractJsonDataFromFile(this.config.dataFile);
+        }
+    },
+    /**
+     * Load the data from a source text
+     */
+    loadTextData() {
+        if (this.config.dataText) {
+            this.extractJsonDataFromText(this.config.dataText);
         }
     },
     /**
