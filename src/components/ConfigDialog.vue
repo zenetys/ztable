@@ -6,57 +6,85 @@
                     <span class="text-h5">Configuration</span>
                 </v-card-title>
                 <v-card-text>
-                    <v-tabs v-model="selectedTab">
-                        <v-tabs-slider color="primary"></v-tabs-slider>
-                        <v-tab>API</v-tab>
-                    </v-tabs>
-                    <v-tabs-items v-model="selectedTab">
-                        <!-- API CONFIG TAB CONTENT -->
-                        <v-tab-item>
-                            <v-container>
+                    <div class="__config-section-container">
+                        <h2>Data Source</h2>
+                        <v-tabs v-model="selectedTab">
+                            <v-tabs-slider color="primary"></v-tabs-slider>
+                            <v-tab>API</v-tab>
+                            <v-tab>FILE</v-tab>
+                            <v-tab>TEXT</v-tab>
+                        </v-tabs>
+                        <br />
+                        <v-tabs-items v-model="selectedTab">
+                            <!-- API CONFIG TAB CONTENT -->
+                            <v-tab-item>
                                 <v-row>
                                     <v-col cols="12">
                                         <v-text-field
                                             label="Data source URL *"
                                             v-model="dataUrl"
                                             required
-                                        ></v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" sm="6">
-                                        <v-text-field
-                                            label="Data path"
-                                            v-model="dataPath"
-                                            hint="Leave blank if the data is at root level."
-                                            :disabled="dataType !== 'generic'"
-                                        ></v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" sm="6">
-                                        <v-select
-                                            :items="DataManager.dataTypes"
-                                            v-model="dataType"
-                                            label="Data type"
-                                        ></v-select>
-                                    </v-col>
-                                    <v-col cols="12">
-                                        <v-text-field
-                                            label="Custom Config URL"
-                                            v-model="customConfigUrl"
-                                            hint="Source URL to a custom configuration file."
-                                            :disabled="dataType !== 'generic'"
+                                            hint="URL to a JSON file or API endpoint."
+                                            :error="$store.configErrors?.includes('no-url')"
                                         ></v-text-field>
                                     </v-col>
                                 </v-row>
-                            </v-container>
-                            <small>*indicates required field</small>
-                        </v-tab-item>
-                    </v-tabs-items>
+                            </v-tab-item>
+                            <!-- FILE CONFIG TAB CONTENT -->
+                            <v-tab-item>
+                                <v-row>
+                                    <v-col cols="12">
+                                        <v-file-input
+                                            label="Data source file *"
+                                            v-model="dataFile"
+                                            required
+                                            accept="application/json"
+                                        ></v-file-input>
+                                    </v-col>
+                                </v-row>
+                            </v-tab-item>
+                        </v-tabs-items>
+                    </div>
+                    <br />
+                    <div class="__config-section-container">
+                        <h2>Options</h2>
+                        <br />
+                        <v-row>
+                            <v-col cols="12" sm="6">
+                                <v-text-field
+                                    label="Data path (optional)"
+                                    v-model="dataPath"
+                                    hint="Leave blank if the data is at root level."
+                                    :disabled="dataType !== 'generic'"
+                                    hightlight
+                                    :error="$store.configErrors?.includes('no-data-at-path')"
+                                ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                                <v-select
+                                    :items="DataManager.dataTypes"
+                                    v-model="dataType"
+                                    label="Data type"
+                                ></v-select>
+                            </v-col>
+                            <v-col cols="12">
+                                <v-text-field
+                                    label="Custom Config URL (optional)"
+                                    v-model="customConfigUrl"
+                                    hint="Source URL to a custom configuration file."
+                                    :disabled="dataType !== 'generic'"
+                                ></v-text-field>
+                            </v-col>
+                        </v-row>
+                        <small>*indicates required field</small>
+                    </div>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn text :disabled="!DataManager.tableData && !DataManager.objectData" @click="cancelDialogForm"
-                        >Close</v-btn
+                        >Cancel</v-btn
                     >
-                    <v-btn color="primary" @click="submitDialogData">Save</v-btn>
+                    <v-btn color="primary" @click="submitDialogData" :disabled="computedSourceIsEmpty">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -73,8 +101,27 @@ export default {
         dataPath: '',
         dataType: 'generic',
         customConfigUrl: '',
-        selectedTab: null,
+        selectedTab: 0,
+        dataFile: null,
+        dataText: null,
     }),
+    computed: {
+        /**
+         * @computed
+         * Check if the source is empty
+         */
+        computedSourceIsEmpty() {
+            if (this.selectedTab === 0 && !this.dataUrl) {
+                return true;
+            } else if (this.selectedTab === 1 && !this.dataFile) {
+                return true;
+            } else if (this.selectedTab === 2 && !this.dataText) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+    },
     methods: {
         /**
          * Hide the config form dialog
@@ -86,6 +133,8 @@ export default {
          * Cancel modifications and close the dialog
          */
         cancelDialogForm() {
+            /* Restore the previously selected tab */
+            this.selectedTab = this.previouslySelectedTab;
             /* Reassign config Form with values from the DataManager */
             this.updateConfigData();
             /* Close dialog */
@@ -97,13 +146,37 @@ export default {
         submitDialogData() {
             let shouldRedirect = false;
 
-            /* Update the URL with new config data if it was changed */
-            if (
-                this.dataUrl !== DataManager.config.dataUrl ||
+            /* Update the previously selected tab if needed */
+            this.previouslySelectedTab = this.selectedTab;
+
+            const optionsHaveChanged =
                 this.dataPath !== DataManager.config.dataPath ||
                 this.dataType !== DataManager.config.dataType ||
-                this.customConfigUrl !== DataManager.config.customConfigUrl
-            ) {
+                this.customConfigUrl !== DataManager.config.customConfigUrl;
+
+            /* Update the URL query params with new source if it's not a local source */
+            if (this.selectedTab === 0 && this.dataUrl !== DataManager.config.dataUrl) {
+                /* New source is an url */
+                shouldRedirect = true;
+                this.dataFile = null;
+                this.dataText = null;
+            } else if (this.selectedTab === 1) {
+                /* New source is a file => load its content in the App */
+                this.dataText = null;
+                this.dataUrl = null;
+                DataManager.config.dataFile = this.dataFile;
+                DataManager.loadFileData();
+                shouldRedirect = false;
+            } else if (this.selectedTab === 2) {
+                /* New source is a JSON in text format => parse it and load it in the App */
+                this.dataFile = null;
+                this.dataUrl = null;
+                // DataManager.loadJsonData(this.dataText);
+                DataManager.config.dataText = this.dataText;
+                shouldRedirect = false;
+            }
+
+            if (optionsHaveChanged) {
                 shouldRedirect = true;
             }
 
@@ -141,6 +214,7 @@ export default {
         '$store.showConfigDialog': {
             immediate: true,
             handler(newVal) {
+                this.previouslySelectedTab = this.previouslySelectedTab || 0;
                 if (newVal) {
                     // When the dialog is shown, load the config data from the data manager
                     this.updateConfigData();
@@ -159,3 +233,15 @@ export default {
     },
 };
 </script>
+
+<style lang="scss">
+.__config-section-container {
+    h2 {
+        color: #1976d2;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    padding: 1rem;
+}
+</style>
