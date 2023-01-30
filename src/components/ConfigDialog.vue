@@ -43,6 +43,22 @@
                                     </v-col>
                                 </v-row>
                             </v-tab-item>
+                            <!-- TEXT CONFIG TAB CONTENT -->
+                            <v-tab-item>
+                                <v-row>
+                                    <v-col cols="12">
+                                        <v-textarea
+                                            class="__config-textarea"
+                                            outlined
+                                            name="input-7-4"
+                                            label="Data source text *"
+                                            v-model="dataText"
+                                            clearable
+                                            required
+                                        ></v-textarea>
+                                    </v-col>
+                                </v-row>
+                            </v-tab-item>
                         </v-tabs-items>
                     </div>
                     <br />
@@ -171,8 +187,8 @@ export default {
                 /* New source is a JSON in text format => parse it and load it in the App */
                 this.dataFile = null;
                 this.dataUrl = null;
-                // DataManager.loadJsonData(this.dataText);
                 DataManager.config.dataText = this.dataText;
+                DataManager.loadTextData();
                 shouldRedirect = false;
             }
 
@@ -243,5 +259,9 @@ export default {
         margin-bottom: 1rem;
     }
     padding: 1rem;
+}
+
+.__config-textarea {
+    margin-top: 1rem !important;
 }
 </style>
