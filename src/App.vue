@@ -122,7 +122,7 @@ export default {
          */
         fetchDataAndInitComponents() {
             /* Fetch data from the API */
-            DataManager.fetchApiData()
+            DataManager.fetchDataFromSource()
                 .then(() => {
                     this.checkIfDataWasFound();
                 })
@@ -150,10 +150,6 @@ export default {
                     this.fetchDataAndInitComponents();
                     this.closeConfigDialog();
                 }
-            } else {
-                /* Show form again */
-                console.log('ZTable Error: No data URL provided');
-                this.openConfigDialog();
             }
         },
         /**
@@ -164,21 +160,32 @@ export default {
 
             if (!foundData) {
                 EventBus.$emit('error', 'Error occurs in data path.');
-                this.openConfigDialog();
             } else {
                 this.closeConfigDialog();
             }
         },
         /**
-         * Open the config form dialog
+         * Open the config form dialog with potential errors to highlight
+         * @param {Array} errorTypes - the types of error to highlight in the config form
          */
-        openConfigDialog() {
+        openConfigDialog(errorTypes) {
+            if (errorTypes && Array.isArray(errorTypes)) {
+                if (Array.isArray(this.$store.configErrors)) {
+                    this.$store.configErrors = this.$store.configErrors.concat(errorTypes);
+                } else {
+                    this.$store.configErrors = errorTypes;
+                }
+            } else {
+                this.$store.configErrors = [];
+            }
+
             this.$store.showConfigDialog = true;
         },
         /**
-         * Close the config form dialog
+         * Close the config form dialog and reset the errors
          */
         closeConfigDialog() {
+            this.$store.configErrors = [];
             this.$store.showConfigDialog = false;
         },
         /**
@@ -202,9 +209,11 @@ export default {
     },
     created() {
         EventBus.$on('error', this.handleError);
+        EventBus.$on('no-data-at-path', () => this.openConfigDialog(['no-data-at-path']));
     },
     beforeDestroy() {
         EventBus.$off('error', this.handleError);
+        EventBus.$off('no-data-at-path', () => this.openConfigDialog(['no-data-at-path']));
     },
     watch: {
         $route: {

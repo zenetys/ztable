@@ -10,6 +10,8 @@ export default {
         dataPath: '',
         dataType: '',
         customConfigUrl: '',
+        dataFile: null,
+        dataText: null,
     }),
     _getItemClassesFromHeaderConfig: null,
     _dataTypes: ['generic', 'navitia'],
@@ -153,16 +155,22 @@ export default {
     },
 
     /**
-     * Fetch data from an API
-     * @returns {Promise} the promise of the fetch from the API
+     * Fetch data from a data source
+     * @param {string} sourceType the type of source to fetch from (url, file, or raw text)
+     * @returns {Promise} the promise of the fetch from the source
      */
-    fetchApiData() {
-        this.dataPromise = axios.get(this.config.dataUrl);
+    fetchDataFromSource(sourceType = 'url') {
+        /* Resets previously fetched data */
+        this.clearFoundData();
+
+        if (sourceType === 'url') {
+            this.dataPromise = axios.get(this.config.dataUrl);
+        }
 
         return this.dataPromise
             .then((response) => {
                 this.jsonData = response?.data || null;
-                console.log('DataManager: data fetched from API: ', this.jsonData);
+                console.log('DataManager: data was fetched : ', this.jsonData);
                 return this.jsonData;
             })
             .catch((error) => {
@@ -242,6 +250,9 @@ export default {
      * @returns {*} Either table data or object data depending on data found
      */
     findDataFromPath() {
+        /* Resets previously found data */
+        this.clearFoundData();
+
         if (this.config.dataType !== 'generic') {
             /* If the data is not generic, load an API specific stylesheet */
             loadApiSpecificStyle(this.config.dataType);
@@ -269,14 +280,14 @@ export default {
 
         if (Array.isArray(foundData) && foundData.length > 0) {
             this.tableData = foundData;
-            this.objectData = null;
             /* If the data is an array, generate new table headers based on data*/
             this.generateColumnDefinitions();
-        } else if (typeof foundData === 'object') {
+        } else if (foundData && typeof foundData === 'object') {
             this.objectData = foundData;
-            this.tableData = null;
         } else {
-            [this.tableData, this.objectData] = [null, null];
+            this.clearFoundData();
+            /* If no data was found, emit an event to re-open the config dialog and highlight the error */
+            EventBus.$emit('no-data-at-path');
         }
         return this.tableData || this.objectData;
     },
@@ -295,5 +306,47 @@ export default {
             };
         }
         return this.config;
+    },
+    /**
+     * Extract json data from a file and set it as the data promise
+     * @param {File} file
+     */
+    extractJsonDataFromFile(file) {
+        const dataPromise = new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = () => {
+                try {
+                    const data = JSON.parse(reader.result);
+                    this.jsonData = data;
+                    resolve({ data });
+                } catch (e) {
+                    reject(e);
+                }
+            };
+            reader.onerror = (error) => reject(error);
+        });
+
+        this.dataPromise = dataPromise;
+        this.fetchDataFromSource('file').then((data) => {
+            this.jsonData = data;
+            this.findDataFromPath();
+        });
+    },
+    /**
+     * Load the data from a source file
+     */
+    loadFileData() {
+        if (this.config.dataFile) {
+            this.extractJsonDataFromFile(this.config.dataFile);
+        }
+    },
+    /**
+     * Reset the data found in the promise
+     */
+    clearFoundData() {
+        this.tableData = null;
+        this.objectData = null;
+        this.columnDefinitions = null;
     },
 };
