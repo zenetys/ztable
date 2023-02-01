@@ -679,6 +679,12 @@ export default {
             if (header.columnDefinition.sortable === false) {
                 return;
             }
+            /* Better to fix columns width in case we are in auto sizing mode,
+             * because columns would adjust depending on the (new) shortest / longest
+             * content displayed on the page after the sort. The resulting effect may
+             * confuse the user. */
+            this.fixColumnsWidth();
+
             /* toggle direction only if sort column has changed */
             if (this.sortBy === header.value)
                 this.sortDesc = !this.sortDesc;
