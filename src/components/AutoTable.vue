@@ -342,12 +342,69 @@ import AutoTableMenu from '@/components/AutoTableMenu.vue';
  * the component under <component>.utils.
  **/
 
+function cmpDefault(a, b) {
+    return a > b ? 1 : (a < b ? -1 : 0);
+}
+
+function makeCmpNumeric(ignoreRegex, parseFn, base) {
+    return function (a, b) {
+        /* try to be generic as possible without too much complexity */
+        if (typeof(a) !== 'string')
+            a = String(a ?? '');
+        if (typeof(b) !== 'string')
+            b = String(b ?? '');
+
+        a = a.split(ignoreRegex).map((e) => parseFn(e, base));
+        b = b.split(ignoreRegex).map((e) => parseFn(e, base));
+
+        for (let i = 0, len = Math.max(a.length, b.length); i < len; i++) {
+            /* isNaN(undefined) => true */
+            if (isNaN(a[i])) {
+                if (!isNaN(b[i]))
+                    return -1;
+            }
+            else if (isNaN(b[i]))
+                return 1;
+            else {
+                let cmp = a[i] - b[i];
+                if (cmp != 0)
+                    return cmp;
+            }
+        }
+        return 0;
+    }
+}
+
+const cmpInt = makeCmpNumeric(/[^0-9]+/, parseInt, 10);
+const cmpFloat = makeCmpNumeric(/[^0-9.]+/, parseFloat, 10);
+
 function cmpString(a, b) {
     if (typeof(a) !== 'string')
         a = String(a ?? '').toLowerCase();
     if (typeof(b) !== 'string')
         b = String(b ?? '').toLowerCase();
     return a > b ? 1 : (a < b ? -1 : 0);
+}
+
+function makeCmpFn(fn, asc /* -1 or 1 */, cmpFn) {
+    cmpFn ||= cmpDefault;
+    return (a, b) => cmpFn(fn(a), fn(b)) * (asc || 1);
+}
+
+function makeCmpKey(key, asc /* -1 or 1 */, cmpFn) {
+    cmpFn ||= cmpDefault;
+    return (a, b) => cmpFn(a[key], b[key]) * (asc || 1);
+}
+
+function makeCmpMultiFn(spec /* [ { asc: 1 or -1, fn: <func(a,b)> }, ... ] */) {
+    return (a, b) => {
+        for (let s of spec) {
+            let cmp = s.fn(a, b) * (s.asc || 1);
+            if (cmp != 0)
+                return cmp;
+        }
+        return 0;
+    }
 }
 
 /**
@@ -1043,7 +1100,13 @@ export default {
     /* EXPORTED HELPERS */
 
     utils: {
+        cmpDefault,
+        cmpFloat,
+        cmpInt,
         cmpString,
+        makeCmpFn,
+        makeCmpKey,
+        makeCmpMultiFn,
     },
 };
 </script>
