@@ -17,7 +17,7 @@
             :items="formattedTableItems"
             :search="search"
             class="auto-table"
-            :class="hasFixedWidths ? 'fixedWidth' : ''"
+            :class="hasFixedWidths ? '' : 'sizable'"
             :item-class="itemClass"
             dense
             item-key="id"
@@ -38,12 +38,11 @@
                         @dragstart="onDragStart"
                         @dragover="onDragOver"
                         @dragend.stop="onDragEnd"
-                        :class="hasFixedWidths ? '' : 'sizable'"
                         v-if="headers.length > 0"
                     >
                         <th
                             class="v-data-table__divider"
-                            :class="'header_' + header.value"
+                            :class="'col_' + header.value"
                             v-for="header in headers"
                             :key="header.value"
                             :draggable="true"
@@ -82,7 +81,6 @@
                         :key="itemIndex"
                         v-on="itemClick ? { click: (ev) => itemClick(item, ev) } : {}"
                         :class="getRowClass(item)"
-                        class="col_size"
                     >
                         <td
                             v-for="(header, headerIndex) in headers"
@@ -184,9 +182,18 @@ tbody .v-data-table__divider span {
         padding: 0;
     }
 
-    .fixedWidth table {
+    .v-data-table:not(.sizable) table {
         width: auto;
-        position: relative;
+    }
+
+    .v-data-table__divider {
+        &.truncable {
+            max-width: 0;
+            > span:not(.cp-span) {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
     }
 
     th {
@@ -226,14 +233,6 @@ tbody .v-data-table__divider span {
             height: auto !important;
             /* position relative needed for the copy button icon */
             position: relative;
-
-            &.truncable {
-                max-width: 0;
-                > span:not(.cp-span) {
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-            }
 
             &:not(.nocp) {
                 padding-right: 18px !important;
@@ -552,7 +551,7 @@ export default {
          */
         getCellClass(header, tableItem) {
             return header.columnDefinition.cssClass(tableItem) +
-                ' v-data-table__divider col_' + header.value +
+                ' v-data-table__divider col_' + header.value + ' cell_' + header.value +
                 (header.columnDefinition.truncable ? ' truncable' : '');
         },
         /**
