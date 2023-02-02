@@ -314,6 +314,31 @@ tbody .v-data-table__divider span {
 import axios from 'axios';
 import AutoTableMenu from '@/components/AutoTableMenu.vue';
 
+/**
+ * Wrapper to navigator.clipboard.writeText() with fallback tentative
+ * for non-secure contexts.
+ * Source: https://stackoverflow.com/a/65996386
+ * Author: drmrbrewer
+ */
+function copyToClipboard(textToCopy) {
+    /* navigator clipboard api needs an https secure context */
+    if (navigator.clipboard && window.isSecureContext)
+        return navigator.clipboard.writeText(textToCopy);
+
+    /* fallback to text area method */
+    const textArea = document.createElement('textarea');
+    textArea.value = textToCopy;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    return new Promise((res, rej) => {
+        document.execCommand('copy') ? res() : rej();
+        textArea.remove();
+    });
+}
 
 const defaultColumnDefinition = {
     formatHtml: undefined,
@@ -616,7 +641,7 @@ export default {
                 return; /* not found */
             }
 
-            this.$utils.copyToClipboard(elementToCopy.innerText).then(() => {
+            copyToClipboard(elementToCopy.innerText).then(() => {
                 const tooltipElement = elementToCopy.querySelector('.cp-span:hover .cell-copied-tooltip');
                 if (tooltipElement) {
                     tooltipElement.style = 'visibility:visible;';
