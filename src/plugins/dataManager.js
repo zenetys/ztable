@@ -195,6 +195,8 @@ export default {
                         formatText: (value, item) => getCellContent(value, item, '__index').value,
                         getTitle: (value, item) => getCellContent(value, item, '__index').text,
                         isHtml: true,
+                        sortable: false,
+                        truncable: false,
                         label: '#',
                         order: -999,
                     };

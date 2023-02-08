@@ -88,24 +88,14 @@ export default {
                 api: this.DataManager.dataPromise,
                 path: this.DataManager.config.dataPath,
                 columns: this.DataManager.columnDefinitions,
-                paginated: true,
                 height: 'auto',
                 id: 'auto-table',
-                customHeadersComputation: (headers) => {
-                    /* Adding an index header */
-                    const indexHeader = {
-                        text: '#',
-                        value: '__index',
-                        sortable: false,
-                        align: 'center',
-                        width: '50px',
-                    };
-                    headers.push(indexHeader);
-                    /** @TEMPORARY WORKAROUND UNTIL COLUMN DEFINITIONS' ORDER IS FUNCTIONAL */
-                    /* Move the index column to the first position */
-                    headers.unshift(headers.splice(headers.length - 1, 1)[0]);
-                },
                 heightOffsets: [44],
+                dataReady: [
+                    (data) => {
+                        return data.map((el, i) => { if (typeof el === "object") el.__index = i + 1; } )
+                    },
+                ],
             });
         },
         /**
