@@ -42,7 +42,7 @@ a:link {
 </style>
 
 <script>
-import AutoTable from '@/components/AutoTable.vue';
+import AutoTable from '../lib/AutoTable.vue';
 import AutoObject from '@/components/AutoObject.vue';
 import ConfigDialog from '@/components/ConfigDialog.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
