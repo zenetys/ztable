@@ -10,15 +10,14 @@
         "type": "git",
         "url": "https://github.com/zenetys/ztable.git"
     },
+    "homepage": "https://github.com/Akryum/vue-cli-plugin-apollo#readme",
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build --target lib --name z-table ./lib/index.js"
     },
     "main": "dist/z-table.common.js",
-    "module": "dist/z-table.esm.js",
-    "unpkg": "dist/z-table.min.js",
-    "cdn": "dist/z-table.min.js",
-    "browser": "dist/z-table.min.js",
+    "unpkg": "dist/z-table.umd.js",
+    "cdn": "dist/z-table.umd.min.js",
     "files": [
         "dist",
         "lib",
@@ -41,5 +40,10 @@
         "sass": "~1.32.0",
         "sass-loader": "^10.0.0",
         "vue-template-compiler": "^2.6.14"
+    },
+    "peerDependencies": {
+        "vue": "^2.6.11",
+        "axios": "^0.24.0",
+        "vuetify": "^2.5.8"
     }
 }

@@ -336,7 +336,7 @@ tbody .v-data-table__divider span {
 
 <script>
 import axios from 'axios';
-import AutoTableMenu from '@/components/AutoTableMenu.vue';
+import AutoTableMenu from './AutoTableMenu.vue';
 
 /**
  * Helpers independant of the component instance that may be exported with
