@@ -7,8 +7,8 @@
                 </v-card-title>
                 <v-card-text>
                     <div class="__config-section-container">
-                        <h2>Data Source</h2>
-                        <v-tabs v-model="selectedTab">
+                        <h2 class="mb-5">Data Source</h2>
+                        <v-tabs v-model="selectedTab" grow active-class="active__tab" class="test">
                             <v-tabs-slider color="primary"></v-tabs-slider>
                             <v-tab>API</v-tab>
                             <v-tab>FILE</v-tab>
@@ -21,6 +21,7 @@
                                 <v-row>
                                     <v-col cols="12">
                                         <v-text-field
+                                            persistent-hint
                                             label="Data source URL *"
                                             v-model="dataUrl"
                                             required
@@ -37,6 +38,8 @@
                                         <v-file-input
                                             label="Data source file *"
                                             v-model="dataFile"
+                                            persistent-hint
+                                            hint="Select a JSON file."
                                             required
                                             accept="application/json"
                                         ></v-file-input>
@@ -48,10 +51,13 @@
                                 <v-row>
                                     <v-col cols="12">
                                         <v-textarea
+                                            persistent-hint
                                             class="__config-textarea"
                                             outlined
+                                            no-resize
                                             name="input-7-4"
                                             label="Data source text *"
+                                            hint="Copy and paste JSON data into the textarea."
                                             v-model="dataText"
                                             clearable
                                             required
@@ -61,12 +67,10 @@
                             </v-tab-item>
                         </v-tabs-items>
                     </div>
-                    <br />
                     <div class="__config-section-container">
-                        <h2>Options</h2>
-                        <br />
-                        <v-row>
-                            <v-col cols="12" sm="6">
+                        <h2 class="mt-8">Options</h2>
+                        <v-row no-gutters>
+                            <v-col cols="12" sm="6" >
                                 <v-text-field
                                     label="Data path (optional)"
                                     v-model="dataPath"
@@ -76,26 +80,26 @@
                                     :error="$store.configErrors?.includes('no-data-at-path')"
                                 ></v-text-field>
                             </v-col>
-                            <v-col cols="12" sm="6">
+                            <v-col cols="12" sm="6" class="pl-sm-5">
                                 <v-select
                                     :items="DataManager.dataTypes"
                                     v-model="dataType"
                                     label="Data type"
                                 ></v-select>
                             </v-col>
-                            <v-col cols="12">
+                            <v-col cols="12" class="mt-2">
                                 <v-text-field
-                                    label="Custom Config URL (optional)"
+                                    label="Custom config URL (optional)"
                                     v-model="customConfigUrl"
                                     hint="Source URL to a custom configuration file."
                                     :disabled="dataType !== 'generic'"
                                 ></v-text-field>
                             </v-col>
                         </v-row>
-                        <small>*indicates required field</small>
                     </div>
                 </v-card-text>
-                <v-card-actions>
+                <v-card-actions class="pb-5 d-flex align-baseline">
+                    <small class="d-block font-italic primary--text">* indicates required field</small>
                     <v-spacer></v-spacer>
                     <v-btn text :disabled="!DataManager.tableData && !DataManager.objectData" @click="cancelDialogForm"
                         >Cancel</v-btn
@@ -251,14 +255,20 @@ export default {
 </script>
 
 <style lang="scss">
+.v-tab:not(.active__tab) {
+    background-color: rgba(0,0,0,.01);
+}
+
+.v-tab.active__tab {
+    background-color: rgba(25, 118, 210, 0.1);
+}
 .__config-section-container {
     h2 {
         color: #1976d2;
         font-weight: 500;
-        text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+        margin-top: 1rem;
     }
-    padding: 1rem;
 }
 
 .__config-textarea {
