@@ -13,8 +13,15 @@ Vue.use(VueSession);
 Vue.prototype.$store = store;
 
 // Global variable for api to call
-Vue.prototype.$typeApi = 'nagios';
-Vue.prototype.$api = '/nagios4/cgi-bin/statusjson.cgi?';
+// Vue.prototype.$typeApi = 'nagios';
+// Vue.prototype.$api = '/nagios4/cgi-bin/statusjson.cgi?';
+
+/* Global config to fetch data from an API */
+Vue.prototype.$apiConfig = {
+    apiUrl: 'https://cdn.zenetys.com/api/v1/data.gouv.navitia.json',
+    dataPath: 'data',
+    dataType: 'generic',
+},
 
 new Vue({
     router,
