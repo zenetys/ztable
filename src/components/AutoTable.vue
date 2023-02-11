@@ -1,387 +1,323 @@
 <template>
-    <div id="__table-container">
-        <!-- COLUMN OPTIONS MENU -->
-        <v-menu
-            offset-y
-            transition="slide-y-transition"
-            :close-on-content-click="false"
-            min-width="400"
-            v-if="headers && formattedTableItems"
-        >
-            <template v-slot:activator="{ on: menu, attrs }">
-                <v-tooltip bottom>
-                    <template v-slot:activator="{ on: tooltip }">
-                        <v-btn
-                            elevation="0"
-                            color="secondary"
-                            absolute
-                            small
-                            icon
-                            v-bind="attrs"
-                            v-on="{ ...tooltip, ...menu }"
-                            id="__column-options-button"
-                            :class="columnButtonClasses"
-                        >
-                            <v-icon>mdi-application-cog</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Open columns settings</span>
-                </v-tooltip>
-            </template>
-            <v-list dense>
-                <v-list-item>
-                    <v-row>
-                        <v-col cols="5">
-                            <strong>Column</strong>
-                        </v-col>
-                        <v-col cols="2">
-                            <strong>Visible</strong>
-                        </v-col>
-                        <v-col cols="2" class="text-center">
-                            <strong>Width</strong>
-                        </v-col>
-                        <v-col cols="3" class="text-center">
-                            <strong>Position</strong>
-                        </v-col>
-                    </v-row>
-                </v-list-item>
-                <v-divider></v-divider>
-                <v-list-item v-for="header in orderedHeaders" :key="header.value" class="__column-menu">
-                    <v-row>
-                        <v-col cols="5" align-self="center">
-                            {{ header.text }}
-                        </v-col>
-                        <v-col cols="2" class="__column-menu--visible-switch">
-                            <v-switch
-                                v-model="header.visible"
-                                dense
-                                hide-details
-                                @change="StorageConfigManager.updateStorageColumnOptions(header, 'visible')"
-                            ></v-switch>
-                        </v-col>
-                        <v-col cols="2" class="__column-menu--width-field">
-                            <v-text-field
-                                v-model="header.width"
-                                :disabled="!header.visible"
-                                @input="saveUpdatedWidth(header)"
-                                dense
-                                hide-details
-                            ></v-text-field>
-                        </v-col>
-                        <v-col cols="3" class="__column-menu--order-buttons">
-                            <v-btn
-                                icon
-                                x-small
-                                color="primary"
-                                :disabled="isFirstHeader(header.hid)"
-                                @click="changeHeaderOrder(header, 'up')"
-                            >
-                                <v-icon>mdi-arrow-up</v-icon>
-                            </v-btn>
-                            <v-btn
-                                icon
-                                x-small
-                                color="primary"
-                                :disabled="isLastHeader(header.hid)"
-                                @click="changeHeaderOrder(header, 'down')"
-                            >
-                                <v-icon>mdi-arrow-down</v-icon>
-                            </v-btn>
-                        </v-col>
-                    </v-row>
-                </v-list-item>
-            </v-list>
-        </v-menu>
-
-        <!-- DATA TABLE -->
+    <v-card>
         <v-data-table
-            v-if="computedHeaders && formattedTableItems"
-            id="auto-table"
-            :headers="computedHeaders"
-            :items="formattedTableItems"
-            class="elevation-2"
+            :id="id"
+            :headers="headers"
+            :items="tableData"
+            class="auto-table elevation-0"
+            :item-class="itemClass"
             dense
-            :item-class="itemClasses"
-            item-key="__zid"
-            :search="search"
+            item-key="id"
             fixed-header
             :height="tableHeight"
             :footer-props="tableFooterProps"
+            disable-sort
             mobile-breakpoint="0"
+            :disable-pagination="!this.isPaginated"
+            :hide-default-footer="!this.isPaginated"
         >
-            <template v-for="header in computedHeaders" v-slot:[`item.${header.value}`]="{ item }">
-                <span
-                    v-if="item[header.value] || item[header.value] === 0 || header.value === '__index'"
-                    :key="header.hid"
-                    :class="header.getCellClasses(header, item)"
-                    :title="header.getCellContent(header, item).text"
-                >
-                    <span
-                        v-if="header.getCellContent(header, item) && header.getCellContent(header, item).isHtml"
-                        v-html="header.getCellContent(header, item).value"
-                    ></span>
-                    <span v-else> {{ header.getCellContent(header, item).value }} </span>
-                </span>
-            </template>
+
+        <template v-slot:body="{ items, headers }">
+            <tbody>
+                <template v-for="(item, index) in items">
+                    <tr :key="index" :class="typeof itemClass=='function' ? itemClass(item) : itemClass">
+                        <template v-for="(headerItem, headerIndex) in headers">
+                            <td :key="headerIndex" :title="headerItem.cdef.tdTooltip(item[headerItem.value], item)" :class="headerItem.cdef.tdClass(item[headerItem.value], item) + ' v-data-table__divider col_' + headerItem.value">
+                                <template v-if="headerItem.cdef.html">
+                                    <span :key="headerItem.id" :title="headerItem.cdef.tooltip(item[headerItem.value], item)" :style="headerItem.cdef.style(item[headerItem.value], item)" v-html="headerItem.cdef.format(item[headerItem.value], item)"></span>
+                                </template>
+                                <template v-else>
+                                    <span :key="headerItem.id" :title="headerItem.cdef.tooltip(item[headerItem.value], item)" :style="headerItem.cdef.style(item[headerItem.value], item)">{{headerItem.cdef.format(item[headerItem.value], item)}}</span>
+                                </template>
+                                <span v-if="activeCopyCellContent && headerItem.cdef.format(item[headerItem.value], item)" class="cp-span mdi mdi-content-copy" @click="copyCellContent('col_'+headerItem.value, index, $event)">
+                                    <span class="cell-copied-tooltip">Copied!</span>
+                                </span>
+                            </td>
+                        </template>
+                    </tr>
+                </template>
+            </tbody>
+        </template>
+
         </v-data-table>
-    </div>
+
+        <v-overlay :absolute="true" :opacity="0.5" color="#ffffff" :value="loading">
+            <v-progress-circular
+                indeterminate
+                size="64"
+                color="#a2a2a2"
+            ></v-progress-circular>
+        </v-overlay>
+
+    </v-card>
 </template>
 
-<style lang="scss">
-#__table-container {
+<style scoped>
+.auto-table * {
+    font-size: 12.8px;
+}
+
+::v-deep th {
+    padding-left: 6px !important;
+    background-color: #FCFCFC !important;
+    border-top: thin solid rgba(0, 0, 0, 0.02);
+}
+
+::v-deep tbody .v-data-table__divider {
+    padding: 1px 6px !important;
+    height: auto !important;
+    /* position relative needed for the copy button icon */
     position: relative;
 }
 
-#__column-options-button {
-    z-index: 7;
-    right: 8px;
+::v-deep tbody .v-data-table__divider:not(.nocp) {
+    padding-right: 18px !important;
 }
 
-.__column-options-button--offset-top {
-    top: -37px;
-}
-
-.v-data-table-header th {
+tbody .v-data-table__divider span {
     white-space: nowrap;
+    display: block;
 }
 
-.v-data-footer {
-    margin-right: 0 !important;
+::v-deep .v-data-table__divider .cp-span {
+    position: absolute;
+    display: none;
+    right: 0;
+    top: 0.7px;
+    padding-top: 1px;
+    padding-right: 2px;
+    cursor: pointer;
 }
 
-.__column-menu {
-    .col {
-        padding: 6px 12px;
-
-        .v-input--switch {
-            margin-top: 0;
-        }
-    }
+::v-deep .v-data-table__divider:hover:not(.nocp) .cp-span {
+    display: block;
 }
 
-.__column-menu--width-field input {
+::v-deep .v-data-table__divider .cp-span .cell-copied-tooltip {
+    visibility: hidden;
+    background-color: rgb(58, 57, 57);
+    color: #fff;
     text-align: center;
+    border-radius: 2px;
+    padding: 0px 4px 0px 4px;
+    position: absolute;
+    top: 2px;
+    right: 17px;
+    font-size: 11px;
 }
 
-.__column-menu--order-buttons {
-    display: flex;
-    justify-content: center;
-}
-
-.v-data-table {
-    tbody {
-        // Transparent color on hover each table tr
-        tr:hover:not(.v-data-table__expanded__content) {
-            filter: grayscale(10%) brightness(95%);
-            -webkit-filter: grayscale(10%) brightness(95%);
-        }
-
-        .v-data-table__divider {
-            position: relative;
-
-            span {
-                position: absolute;
-                top: 1px;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                padding: 5px 5px 5px 5px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        }
-    }
-}
-
-.__settings-btn {
-    bottom: 2vh !important;
-    left: 2vw !important;
+::v-deep .v-data-table__wrapper tbody tr:hover:not(.v-data-table__expanded__content) {
+    filter: grayscale(10%) brightness(95%);
 }
 </style>
 
 <script>
-import DataManager from '@/plugins/dataManager';
-import StorageConfigManager from '@/plugins/storageConfigManager';
 import { VDataTable } from 'vuetify/lib';
-import { getItemClasses, customSortByColumn } from '@/plugins/formatManager';
-import { swapElementsInArray } from '@/plugins/utils';
+import axios from 'axios';
+import { copyToClipboard } from "@/plugins/misc";
+
+const default_column_definition = {
+    format: (v) => v,
+    style: () => '',
+    tooltip: () => '',
+    html: false,
+    hidden: false,
+    tdClass: () => '',
+    tdTooltip: () => '',
+}
 
 export default {
-    name: 'auto-table',
+    name: 'AutoTable',
     props: {
-        /**
-         * @prop {string} items - the table items to display
-         */
-        items: {
-            type: Array,
+        id: {
+            type: String,
+            default: 'auto-table',
         },
-        /**
-         * @prop {Array} headers - the table headers to display
-         */
-        headers: {
-            type: Array,
+        api:{
+            type: String,
+            required: true,
         },
+        arrayData: {
+            type: String,
+            default: '',
+        },
+        columnDefinition: {
+            type: Object,
+            default: () => ({}),
+        },
+        isPaginated: {
+            type: Boolean,
+            default: false,
+        },
+        height: {
+            /* type String, Number, Function or undefined */
+            type: [String, Number],
+            default: 'auto',
+        },
+        autoTableHeightExtra: {
+            type: Array,
+            default: () => ([]),
+            /* array of dom ids to substract of +/- numbers */
+        },
+        itemClass: {
+            type: [String, Function],
+            default: () => (''),
+        },
+        headersComputation: {
+            type: Function,
+            default: () => ({}),
+        },
+        activeCopyCellContent: {
+            type: Boolean,
+            default: true,
+        }
     },
     components: {
         VDataTable,
     },
     computed: {
-        /**
-         * Format the table items to display in the table
-         * @computed
-         * @returns {Array<{__zid: number, [key: string]: any}>} the formatted table items to display in the table
-         */
-        formattedTableItems() {
-            return this.items?.map((item, index) => {
-                if (typeof item === 'object') {
-                    return {
-                        ...item,
-                        __zid: index,
-                    };
-                } else {
-                    /* If the data is an array of simple values (like strings or numbers),
-                     just create data items with the indexes and values as properties */
-                    return {
-                        index,
-                        value: item,
-                        __zid: index,
-                    };
+        headers() {
+            /* acquire header keys from data */
+            let headers = [];
+            let seenKeys = {};
+            this.tableItems.forEach(element => {
+                for (const key in element) {
+                    if (seenKeys[key])
+                        continue;
+                    seenKeys[key] = true;
+                    headers.push({ value: key });
                 }
             });
+            /* hook before final column setup */
+            this.headersComputation(headers, this.items);
+            /* setup columns and potentially discard hidden ones (splice), hence the reverse loop */
+            let i = headers.length;
+            while (i--) {
+                let h = headers[i];
+                let cdef = Object.assign({}, default_column_definition, this.$props.columnDefinition[h.value]);
+                if (cdef.hidden) {
+                    headers.splice(i, 1);
+                    continue;
+                }
+                if (h.text === undefined)
+                    h.text = h.value.charAt(0).toUpperCase() + h.value.slice(1);
+                h.divider = true;
+                h.cdef = cdef;
+            }
+            return headers;
         },
-        /**
-         * Filter the table headers to only display the selected
-         * @computed
-         * @returns {Array} the filtered table headers to display in the table
-         */
-        computedHeaders() {
-            return this.orderedHeaders.filter((header) => header.visible);
-        },
-        /**
-         * Get classes for the table items depending on headers config
-         * @computed
-         * @returns {*} the classes for the table items depending on headers config
-         */
-        itemClasses() {
-            return DataManager.config.dataType === 'generic' && DataManager.config.headersUrl
-                ? DataManager.getItemClassesFromHeaderConfig
-                : getItemClasses;
+        tableData() {
+            return this.tableItems.map((item, index) => ({
+                id: index,
+                ...item
+            }));
         },
     },
     data() {
         return {
-            StorageConfigManager,
-            selected: [],
-            search: '',
-            tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
-            tableHeight: null,
-            inputTimeout: null,
-            orderedHeaders: [],
-            columnButtonClasses: '',
-        };
-    },
-    methods: {
-        getItemClasses,
-        customSortByColumn,
-        /**
-         * Calculate the height of the table
-         */
-        handleWindowResize() {
-            /* HANDLE TABLE HEIGHT */
-            /* Calculate the height of the Breadcrumbs component */
-            const breadcrumbsElement = document.getElementById('__breadcrumbs');
-            const breadcrumbsHeight = breadcrumbsElement ? breadcrumbsElement.clientHeight : 0;
-            /* Calculate the height of the table footer component */
-            const footerElements = document.getElementsByClassName('v-data-footer');
-            const footerHeight = footerElements?.length > 0 ? footerElements[0].clientHeight : 0;
-
-            this.tableHeight = window.innerHeight - breadcrumbsHeight - footerHeight;
-
-            /* HANDLE COLUMN BUTTON POSITIONNING */
-            this.columnButtonClasses =
-                window.innerWidth < 900 && DataManager.config.dataType === 'generic'
-                    ? '__column-options-button--offset-top'
-                    : '';
-        },
-        /**
-         * Update the width a header in the table and save its config in local storage
-         */
-        saveUpdatedWidth(header) {
-            if (this.inputTimeout) {
-                clearTimeout(this.inputTimeout);
-            }
-            this.inputTimeout = setTimeout(() => {
-                const headers = [...this.headers];
-                const updatedHeader = headers.find((h) => h.value === header.value);
-                /* Update header's width in the table */
-                updatedHeader.width = header.width;
-                DataManager.headers = headers;
-                /* Save the column options in storage */
-                StorageConfigManager.updateStorageColumnOptions(header, 'width');
-            }, 400);
-        },
-        /**
-         * Assess whether a header is the first header in order or not.
-         * @param {number} headerId - the id of the header to check
-         * @returns {boolean} true if the header is the first header
-         */
-        isFirstHeader(headerId) {
-            return headerId === this.orderedHeaders[0].hid;
-        },
-        /**
-         * Assess whether a header is the last header in order or not.
-         * @param {number} headerId - the id of the header to check
-         * @returns {boolean} true if the header is the last header
-         */
-        isLastHeader(headerId) {
-            return headerId === this.orderedHeaders[this.orderedHeaders.length - 1].hid;
-        },
-        /**
-         * Move a header in the table order.
-         * @param {*} header - the header to move
-         * @param {string} direction - the direction of the movement
-         */
-        changeHeaderOrder(header, direction) {
-            const headerPosition = this.orderedHeaders.findIndex((h) => h.hid === header.hid);
-
-            if (direction === 'up') {
-                this.swapHeadersPositions(headerPosition, headerPosition - 1);
-            } else {
-                this.swapHeadersPositions(headerPosition, headerPosition + 1);
-            }
-        },
-        /**
-         * Swap two headers positions in the table order and save the config in local storage.
-         * @param {number} position1 - the position of the first header
-         * @param {number} position2 - the position of the second header
-         */
-        swapHeadersPositions(position1, position2) {
-            this.orderedHeaders = swapElementsInArray(this.orderedHeaders, position1, position2);
-
-            /* Save the column order in storage */
-            StorageConfigManager.saveOrderedHeadersInStorage(this.orderedHeaders);
-        },
+            tableItems: [],
+            tableHeight: '',
+            loading: false,
+            tableFooterProps: {'items-per-page-options': [50, 100, 150, -1]},
+        }
     },
     watch: {
-        headers: {
-            handler(newHeaders) {
-                this.orderedHeaders = [...newHeaders];
-            },
-            immediate: true,
-        },
+        api() { this.getTableItems(); }
     },
-    created() {
-        window.addEventListener('resize', this.handleWindowResize);
+    methods: {
+        getTableItems() {
+            console.log('autotable getItems apiUrl', this.$props.api)
+            this.loading = true;
+            axios({
+                method: 'get',
+                url: this.$props.api,
+            })
+            .then( (response) => {
+                const path = this.$props.arrayData.split(".");
+                let pointer = response.data;
+
+                if (path != "") {
+                    for (let i = 0; i < path.length; i++) {
+                        if (pointer[path[i]]) {
+                            pointer = pointer[path[i]];
+                        } else {
+                            pointer = null;
+                            break;
+                        }
+                    }
+                    if (pointer==null) {
+                        this.$emit('error', 'Error occurs in data path.');
+                    }
+                }
+                this.tableItems = pointer;
+                this.loading = false;
+                this.$emit('error', {});
+            }).catch( (error) => {
+                this.tableItems = [];
+                console.log('data from autoTable error', error);
+                this.$emit('error', { type: 'error', content: 'Cannot load data, problem with the query.', error: error });
+            });
+        },
+        setTableHeight() {
+            if (this.$props.height == 'auto')
+                this.tableHeight = this.computeAutoTableHeight();
+            else if (this.$props.height !== undefined)
+                this.tableHeight = this.$props.height;
+        },
+        computeAutoTableHeight() {
+            const table = document.getElementById(this.id);
+            let tableHeight = 0;
+            if (table) {
+                const tableFooterElement = table.getElementsByClassName('v-data-footer');
+                const footerHeight = tableFooterElement.length ? tableFooterElement[0].clientHeight : 0;
+                if (table.parentElement && table.parentElement.style.height != '') {
+                    tableHeight += table.parentElement.style.height;
+                    console.log('mode parent', table.parentElement.style.height)
+                }
+                else {
+                    const tableRect = table.getBoundingClientRect();
+                    tableHeight += (window.innerHeight - tableRect.top);
+                }
+                tableHeight -= footerHeight;
+                if (this.autoTableHeightExtra) {
+                    for (let i of this.autoTableHeightExtra) {
+                        if (typeof i == 'number')
+                            tableHeight += i;
+                        else {
+                            i = document.getElementById(i);
+                            if (i)
+                                tableHeight -= i.clientHeight;
+                        }
+                    }
+                }
+            }
+            console.log('auto-table computeAutoTableHeight()', tableHeight);
+            return tableHeight;
+        },
+        /**
+         * Copy cell content to clipboard
+         * @param {string} value - Cell class name
+         * @param {number} index - item index
+         */
+        copyCellContent(value, index) {
+            let elCopy = document.getElementsByClassName(`${value}`)[index].innerText;
+            copyToClipboard(elCopy)
+                .then(() => {
+                    const tooltipElement = document.querySelector('.cp-span:hover .cell-copied-tooltip');
+                    if (tooltipElement) {
+                        tooltipElement.style = "visibility:visible;";
+                        setTimeout(() => { tooltipElement.style = ""; }, 400);
+                    }
+                });
+        }
     },
     mounted() {
-        this.handleWindowResize();
-    },
-    updated() {
-        this.handleWindowResize();
+        this.getTableItems();
+        this.setTableHeight();
+        window.addEventListener('resize', this.setTableHeight);
     },
     destroyed() {
-        window.removeEventListener('resize', this.handleWindowResize);
+        window.removeEventListener('resize', this.setTableHeight);
     },
-};
+}
 </script>
