@@ -1,11 +1,16 @@
+import Vue from 'vue';
 import axios from 'axios';
 import { EventBus } from '@/plugins/eventBus';
 import { getCellContent, getCellClasses } from '@/plugins/formatManager';
 
 export default {
+    _config: Vue.observable({
+        dataUrl: '',
+        dataPath: '',
+        dataType: '',
+    }),
+    _dataTypes: ['generic', 'navitia'],
     _apiData: null,
-    _dataPath: '',
-    _apiUrl: '',
     _headers: null,
     _tableData: null,
 
@@ -25,33 +30,33 @@ export default {
     },
 
     /**
-     * Get the value of dataPath
-     * @returns {string} the value of dataPath
+     * Get the value of dataTypes
+     * @returns {array} the value of dataTypes
      */
-    get dataPath() {
-        return this._dataPath;
+    get dataTypes() {
+        return this._dataTypes;
     },
     /**
-     * Change the value of dataPath
-     * @param {string} value the new value of dataPath
+     * Change the value of dataTypes
+     * @param {array} value the new value of dataTypes
      */
-    set dataPath(value) {
-        this._dataPath = value;
+    set dataTypes(value) {
+        this._dataTypes = value;
     },
 
     /**
-     * Get the value of apiUrl
-     * @returns {string} the value of apiUrl
+     * Get the data config
+     * @returns {{dataUrl: string, dataPath: string, datatype: string}} the data config
      */
-    get apiUrl() {
-        return this._apiUrl;
+    get config() {
+        return this._config;
     },
     /**
-     * Change the value of apiUrl
-     * @param {string} value the new value of apiUrl
+     * Set the data config
+     *  @param {{dataUrl: string, dataPath: string, datatype: string}} value the data config
      */
-    set apiUrl(value) {
-        this._apiUrl = value;
+    set config(value) {
+        this._config = value;
     },
 
     /**
@@ -90,7 +95,7 @@ export default {
      */
     fetchApiData() {
         return axios
-            .get(this.apiUrl)
+            .get(this.config.dataUrl)
             .then((response) => {
                 this.apiData = response?.data || null;
                 console.log('DataManager: data fetched from API: ', this.apiData);
@@ -128,23 +133,42 @@ export default {
         return headers;
     },
     /**
-     * Generate table data from the API response data and the provided data path
+     * Find the data in the API response with the provided data path
      * @returns {array} the array of table data
      */
-    generateTableData() {
-        let path = this.dataPath.split('.');
-        let tableData = this.apiData;
+    findDataFromPath() {
+        let path = this.config.dataPath === '' ? null : this.config.dataPath.split('.');
+        let tableData = null;
 
-        for (let i = 0; i < path.length; i++) {
-            if (tableData[path[i]]) {
-                tableData = tableData[path[i]];
-            } else {
-                tableData = null;
-                break;
+        if (path) {
+            for (let i = 0; i < path.length; i++) {
+                if (this.apiData[path[i]]) {
+                    tableData = this.apiData[path[i]];
+                } else {
+                    tableData = null;
+                    break;
+                }
             }
+        } else {
+            tableData = Array.isArray(this.apiData) ? this.apiData : [];
         }
 
         this.tableData = tableData;
         return this.tableData;
+    },
+    /**
+     * Set values for the config object from a route's query params
+     * @param {*} route
+     * @returns {{dataUrl: string, dataPath: string, datatype: string}} the updated config object
+     */
+    setConfigFromRoute(route) {
+        if (route?.query) {
+            this.config = {
+                dataUrl: route.query.source,
+                dataPath: route.query.path || '',
+                dataType: route.query.type || 'generic',
+            };
+        }
+        return this.config;
     },
 };

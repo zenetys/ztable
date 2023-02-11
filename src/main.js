@@ -16,12 +16,19 @@ Vue.prototype.$store = store;
 // Vue.prototype.$typeApi = 'nagios';
 // Vue.prototype.$api = '/nagios4/cgi-bin/statusjson.cgi?';
 
-/* Global config to fetch data from an API */
-Vue.prototype.$apiConfig = {
-    apiUrl: 'https://cdn.zenetys.com/api/v1/data.gouv.navitia.json',
-    dataPath: 'data',
-    dataType: 'generic',
-},
+// /* Global config to fetch data from an API */
+// Vue.prototype.$apiConfig = {
+//     apiUrl: 'https://cdn.zenetys.com/api/v1/data.gouv.navitia.json',
+//     dataPath: 'data',
+//     dataType: 'generic',
+// },
+
+/** DEV TESTING - JSON example with some style & formatting : data type NAVITIA  */
+// Vue.prototype.$apiConfig = {
+//     dataUrl: 'https://cdn.zenetys.com/api/v1/data.gouv.navitia.json',
+//     dataPath: 'data',
+//     dataType: 'navitia',
+// };
 
 new Vue({
     router,

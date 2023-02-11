@@ -1,10 +1,35 @@
+import DataManager from '@/plugins/dataManager';
+import NavitiaManager from '@/plugins/api-managers/navitia/navitia-manager';
+import { EventBus } from '@/plugins/eventBus';
+
 /**
- * Get the content of a cell from the value of its item
- * @param {string} itemValue the value of the item.
- * @returns {string} the content of the cell.
+ * Get the content of a table cell
+ * @param {string} header the header of the column.
+ * @param {string} item the data object of the row.
+ * @returns {*} the content to display in the cell.
  */
-export function getCellContent(itemValue) {
-    return String(itemValue);
+export function getCellContent(header, item) {
+    if (DataManager.config.dataType === 'generic') {
+        return getGenericCellContent(header, item);
+    } else {
+        // Temporary - to be replaced by API specific methods
+        return NavitiaManager.getCellContent(header, item);
+    }
+}
+
+/**
+ * Get the content of a table cell from a generic JSON object
+ * @param {string} header the header of the column.
+ * @param {string} item the data object of the row.
+ * @returns {*} the content to display in the cell.
+ */
+function getGenericCellContent(header, item) {
+    const cell = item[header.value];
+    if (typeof cell === 'object' && cell.textVal) {
+        return `<a href="#" title="${cell.value}">${cell.textVal}</a>`;
+    } else {
+        return String(cell);
+    }
 }
 
 /**
@@ -14,10 +39,19 @@ export function getCellContent(itemValue) {
  * @returns {string} the classes of the cell.
  */
 export function getCellClasses(header, item) {
+    let cellClasses = '';
+
     if (item) {
-        return '';
+        const dataType = DataManager.config.dataType;
+
+        switch (dataType) {
+            case 'navitia':
+                cellClasses = NavitiaManager.getCellClasses(header, item);
+                break;
+        }
     }
-    return '';
+
+    return cellClasses;
 }
 
 /**
@@ -50,4 +84,16 @@ export function customSortByColumn(items, index, isDesc) {
         }
     });
     return items;
+}
+
+/**
+ * Try to dynamicly load an API specific stylesheet.
+ * @param {string} type the type of the API.
+ */
+export function loadApiSpecificStyle(type) {
+    if (type) {
+        import(`@/plugins/api-managers/${type}/style.scss`)
+            .then()
+            .catch((err) => EventBus.$emit('error', { message: `Error loading stylesheet for : ${type}`, err }));
+    }
 }
