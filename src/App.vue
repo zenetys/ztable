@@ -31,6 +31,7 @@ a:link {
 import AutoTable from '@/components/AutoTable';
 import ConfigDialog from '@/components/ConfigDialog';
 import DataManager from '@/plugins/dataManager';
+import StorageConfigManager from '@/plugins/storageConfigManager';
 import { loadApiSpecificStyle } from '@/plugins/formatManager';
 import { EventBus } from '@/plugins/eventBus';
 
@@ -45,6 +46,7 @@ export default {
             appVersion: process.env.VUE_APP_VERSION,
             appName: process.env.VUE_APP_NAME,
             DataManager,
+            StorageConfigManager,
             apiData: null,
             tableData: null,
         };
@@ -70,6 +72,8 @@ export default {
                             } else {
                                 DataManager.generateHeaders();
                             }
+                            /* Once headers are set, check if there's any column configuration in storage and apply it */
+                            StorageConfigManager.loadStorageColumnOptions();
                         });
                     } else {
                         DataManager.generateHeaders();

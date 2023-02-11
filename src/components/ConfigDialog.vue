@@ -27,6 +27,7 @@
                                             label="Data path"
                                             v-model="dataPath"
                                             hint="Leave blank if the data is at root level."
+                                            :disabled="dataType !== 'generic'"
                                         ></v-text-field>
                                     </v-col>
                                     <v-col cols="12" sm="6">
@@ -41,6 +42,7 @@
                                             label="Headers config URL"
                                             v-model="headersUrl"
                                             hint="Source URL to a configuration file for the headers."
+                                            :disabled="dataType !== 'generic'"
                                         ></v-text-field>
                                     </v-col>
                                 </v-row>
