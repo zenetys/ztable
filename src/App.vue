@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <div class="ml-1 mr-2">
-          <AutoTable api="https://coronavirusapi-france.vercel.app/AllDataByDate?date=2020-09-30" array_data="allFranceDataByDate"/>
+          <AutoTable api="https://cdn.zenetys.com/api/v1/data.gouv.navitia.json" arrayData="data"/>
       </div>
     </v-main>
   </v-app>
