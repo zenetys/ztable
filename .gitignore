@@ -21,6 +21,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+*.patch
 
 # package lock
 package-lock.json
