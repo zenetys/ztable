@@ -11,7 +11,7 @@
                 v-if="DataManager.config && DataManager.config.dataType === 'generic'"
                 :path="DataManager.config.dataPath"
             />
-            <AutoTable v-if="DataManager.tableData" :headers="DataManager.headers" :items="DataManager.tableData" />
+            <AutoTable v-if="DataManager.tableData" :config="tableConfig" />
             <AutoObject v-if="DataManager.objectData" :object="DataManager.objectData" />
             <ConfigDialog />
             <v-btn
@@ -61,6 +61,22 @@ export default {
             DataManager,
             StorageConfigManager,
         };
+    },
+    computed: {
+        /**
+         * Build the AutoTable config
+         * @returns {Config} the current config
+         */
+        tableConfig() {
+            return ({
+                api: this.DataManager.dataPromise,
+                path: this.DataManager.config.dataPath,
+                columns: this.DataManager.headers,
+                paginated: true,
+                height: 'auto',
+                id: 'auto-table',
+            });
+        },
     },
     methods: {
         /**

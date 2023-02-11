@@ -148,12 +148,28 @@ export default {
     },
 
     /**
+     * Get the value of apiPromise
+     * @returns {Promise} the value of apiPromise
+     */
+    get apiPromise() {
+        return this._apiPromise;
+    },
+    /**
+     * Change the value of apiPromise
+     * @param {Promise} value the new value of apiPromise
+     */
+    set apiPromise(value) {
+        this._apiPromise = value;
+    },
+
+    /**
      * Fetch data from an API
      * @returns {Promise} the promise of the fetch from the API
      */
     fetchApiData() {
-        return axios
-            .get(this.config.dataUrl)
+        this.apiPromise = axios.get(this.config.dataUrl);
+
+        return this.apiPromise
             .then((response) => {
                 this.apiData = response?.data || null;
                 console.log('DataManager: data fetched from API: ', this.apiData);
