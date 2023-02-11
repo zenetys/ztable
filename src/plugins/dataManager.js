@@ -1,18 +1,30 @@
 import Vue from 'vue';
 import axios from 'axios';
 import { EventBus } from '@/plugins/eventBus';
-import { getCellContent, getCellClasses } from '@/plugins/formatManager';
+import { getCellContent, getCellClasses, getSpecialFormatContent, loadApiSpecificStyle } from '@/plugins/formatManager';
+import StorageConfigManager from '@/plugins/storageConfigManager';
+import NavitiaManager from '@/plugins/api-managers/navitia/navitiaManager';
 
 export default {
     _config: Vue.observable({
         dataUrl: '',
         dataPath: '',
         dataType: '',
+        headersUrl: '',
     }),
+    _getItemClassesFromHeaderConfig: null,
+    _headersConfig: {},
     _dataTypes: ['generic', 'navitia'],
     _apiData: null,
-    _headers: null,
+    _headers: Vue.observable(null),
     _tableData: null,
+    defaultHeaderConfig: {
+        divider: true,
+        align: 'start',
+        getCellContent,
+        getCellClasses,
+        hidden: false,
+    },
 
     /**
      * Get the value of apiData
@@ -90,6 +102,36 @@ export default {
     },
 
     /**
+     * Get the headers config
+     * @returns {Object} the headers config
+     */
+    get headersConfig() {
+        return this._headersConfig;
+    },
+    /**
+     * Set the headers config
+     * @param {Object} value the headers config
+     */
+    set headersConfig(value) {
+        this._headersConfig = value;
+    },
+
+    /**
+     * Get the value of getItemClassesFromHeaderConfig
+     * @returns {function} the value of getItemClassesFromHeaderConfig
+     */
+    get getItemClassesFromHeaderConfig() {
+        return this._getItemClassesFromHeaderConfig;
+    },
+    /**
+     * Set the value of getItemClassesFromHeaderConfig
+     * @param {function} value the new value of getItemClassesFromHeaderConfig
+     */
+    set getItemClassesFromHeaderConfig(value) {
+        this._getItemClassesFromHeaderConfig = value;
+    },
+
+    /**
      * Fetch data from an API
      * @returns {Promise} the promise of the fetch from the API
      */
@@ -111,23 +153,86 @@ export default {
      */
     generateHeaders() {
         const headers = [];
+        let hid = 0;
 
         this.tableData?.forEach((item) => {
             Object.keys(item).forEach((key) => {
-                let textVal = String(key.charAt(0).toUpperCase() + key.slice(1));
+                let label = String(key.charAt(0).toUpperCase() + key.slice(1));
 
                 if (!headers.some((header) => header.value === key)) {
                     headers.push({
-                        text: textVal,
+                        ...this.defaultHeaderConfig,
+                        text: label,
                         value: key,
-                        divider: true,
-                        align: 'start',
-                        getCellContent,
-                        getCellClasses,
+                        hid,
                     });
+
+                    hid++;
                 }
             });
         });
+
+        this.headers = headers;
+        /* Once headers are set, check if there's any column configuration in storage and apply it */
+        StorageConfigManager.loadStorageColumnOptions();
+    },
+    /**
+     * Generate a set of headers from a configuration array
+     * @param {object[]} headersConfig the configuration array
+     * @returns {array} the array of generated headers
+     */
+    generateHeadersFromConfig() {
+        const headers = [];
+        let hid = 0;
+
+        if (Array.isArray(this.headersConfig)) {
+            this.headersConfig.forEach((h) => {
+                if (h.value === '_row' && h.class) {
+                    /* Configuration for the entire row (table item) */
+                    if (h.class.body && h.class.arguments) {
+                        this.getItemClassesFromHeaderConfig = new Function(h.class.arguments, h.class.body);
+                    } else if (typeof h.class === 'string') {
+                        this.getItemClassesFromHeaderConfig = () => h.class;
+                    }
+                } else {
+                    let label = String(h.value.charAt(0).toUpperCase() + h.value.slice(1));
+
+                    if (!headers.some((header) => header.value === h.value)) {
+                        const formattedHeader = {
+                            ...this.defaultHeaderConfig,
+                            text: label,
+                            value: h.value,
+                            hid,
+                            visible: true,
+                        };
+
+                        /** Header config has class directives :
+                         * if string => add classes to the header
+                         * if method => build method add it to the header
+                         */
+                        if (h.class) {
+                            if (typeof h.class === 'string') {
+                                formattedHeader.getCellClasses = () => h.class;
+                            } else if (typeof h.class === 'object' && h.class.body) {
+                                formattedHeader.getCellClasses = new Function(h.class.arguments || '', h.class.body);
+                            }
+                        }
+
+                        if (h.label) {
+                            formattedHeader.text = h.label;
+                        }
+
+                        /* If a custom format was specified for a header, get its formatting method */
+                        if (h.format) {
+                            formattedHeader.getCellContent = getSpecialFormatContent(h.format);
+                        }
+
+                        headers.push(formattedHeader);
+                        hid++;
+                    }
+                }
+            });
+        }
 
         this.headers = headers;
         return headers;
@@ -137,8 +242,18 @@ export default {
      * @returns {array} the array of table data
      */
     findDataFromPath() {
+        if (this.config.dataType !== 'generic') {
+            /* If the data is not generic, load an API specific stylesheet */
+            loadApiSpecificStyle(this.config.dataType);
+
+            if (this.config.dataType === 'navitia') {
+                this.config.dataPath = NavitiaManager.dataPath;
+            }
+        }
+
+        /* Data starting point is the API response */
+        let foundData = this.apiData;
         let path = this.config.dataPath === '' ? null : this.config.dataPath.split('.');
-        let tableData = null;
 
         if (path) {
             for (let i = 0; i < path.length; i++) {
@@ -167,8 +282,32 @@ export default {
                 dataUrl: route.query.source,
                 dataPath: route.query.path || '',
                 dataType: route.query.type || 'generic',
+                headersUrl: route.query.headers || '',
             };
         }
         return this.config;
+    },
+    /**
+     * Fetch headers configuration from a distant API URL
+     * @returns {Promise} The axios get promise
+     */
+    fetchHeadersConfig() {
+        return axios
+            .get(this.config.headersUrl)
+            .then((response) => {
+                this.headersConfig = response?.data || response || [];
+                console.log('DataManager: headers config fetched from API: ', this.headersConfig);
+
+                if (this.headersConfig) {
+                    this.generateHeadersFromConfig();
+                    /* Once headers are set, check if there's any column configuration in storage and apply it */
+                    StorageConfigManager.loadStorageColumnOptions();
+                }
+
+                return this.headersConfig;
+            })
+            .catch((error) => {
+                EventBus.$emit('error', error);
+            });
     },
 };

@@ -3,7 +3,7 @@ const propertiesCallbacks = {
     geo: formatGeo,
 };
 const propertyClasses = {
-    data_source_site: 'navitia__text-red',
+    data_source_site: 'orange-text',
 };
 
 /* Will be added at a later stage */
@@ -47,7 +47,7 @@ export default {
  */
 function formatDataSourceFile(item) {
     if (item?.data_source_file) {
-        return `<a href="${item.data_source_file}" target="_blank">${item.data_source_file}</a>`;
+        return `<a href="${item.data_source_file}" title="Download file" target="_blank">${item.data_source_file}</a>`;
     } else {
         return '';
     }
@@ -58,7 +58,7 @@ function formatDataSourceFile(item) {
  * @param {*} item The navitia item
  * @returns {string} The formatted geo field
  */
-function formatGeo (item) {
+function formatGeo(item) {
     if (item?.geo?.value?.length === 2) {
         return `lat: ${item.geo.value[0]}, long: ${item.geo.value[1]}`;
     } else {
