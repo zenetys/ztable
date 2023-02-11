@@ -1,6 +1,7 @@
 import DataManager from '@/plugins/dataManager';
 import NavitiaManager from '@/plugins/api-managers/navitia/navitiaManager';
 import { EventBus } from '@/plugins/eventBus';
+import { generateLinkToSubPath, generateUrlFromPath } from '@/plugins/utils';
 
 /**
  * Configuration object matching formatting methods with formats
@@ -18,7 +19,7 @@ const formattingMethods = {
  * @returns {*} the content to display in the cell.
  */
 export function getCellContent(header, item) {
-    if (DataManager.config.dataType && DataManager.config.dataType === 'generic') {
+    if (DataManager.config.dataType === 'generic') {
         return getGenericCellContent(header, item);
     } else {
         // Temporary - to be replaced by API specific methods
@@ -33,12 +34,11 @@ export function getCellContent(header, item) {
  * @returns {*} the content to display in the cell.
  */
 function getGenericCellContent(header, item) {
-    const cell = item[header.value];
-    if (typeof cell === 'object' && cell.text) {
-        return `<a href="#" title="Open this sub-level">${cell.text}</a>`;
-    } else {
-        return String(cell);
-    }
+    const value = item[header.value];
+    const key = header.value;
+    const index = item.__zid;
+
+    return formatContentForSubLinks(value, key, index);
 }
 
 /**
@@ -117,19 +117,59 @@ export function getSpecialFormatContent(format) {
 }
 
 /**
+ * Check if a cell value is an object or an array: if so, generate a link to the sub-path.
+ * @param {string} value the value of the cell to format if needed.
+ * @param {string} key the key to add to the path to navigate to.
+ * @param {string} index the  index of the data we are currently viewing if in an array.
+ * @returns {*} the formatted cell value, with a link if needed.
+ */
+export function formatContentForSubLinks(value, key, index = null) {
+    const contentValue = {
+        isHtml: false,
+        value: null,
+    };
+
+    if (key === '__index') {
+        /* For the index header, generate a simple link to the table item */
+        const itemPath = DataManager.config.dataPath;
+        const url = generateUrlFromPath(itemPath ? `${itemPath}.${index}` : `${index}`);
+        const link = `<a href="${url}" title="Open table item">${index}</a>`;
+
+        contentValue.isHtml = true;
+        contentValue.value = link;
+        contentValue.text = 'Item index';
+    } else if (value && typeof value === 'object') {
+        /* Check if the value is an array */
+        const valueType = Array.isArray(value) && value.length > 0 ? 'array' : 'object';
+
+        contentValue.isHtml = true;
+        contentValue.value = generateLinkToSubPath(valueType, key, index);
+        contentValue.text = valueType;
+    } else {
+        contentValue.value = value;
+        contentValue.text = value;
+    }
+
+    return contentValue;
+}
+
+/**
  * Get a link to googlemaps from given coordinates
  * @param {object} header the header of the column.
  * @param {object} item the item of the row.
  * @returns {string} the link to googlemaps.
  */
 function getGeoLink(header, item) {
-    const value = item[header.value].value;
+    const value = item[header.value];
 
     if (!Array.isArray(value)) {
         return value;
     } else {
         const latlngString = value.join(',');
-        return `<a href="https://maps.google.com/?q=${latlngString}" title="Go to coordinates" target="_blank">${latlngString}</a>`;
+        return {
+            isHtml: true,
+            value: `<a href="https://maps.google.com/?q=${latlngString}" title="See on Google Maps" target="_blank">${latlngString}</a>`,
+        };
     }
 }
 

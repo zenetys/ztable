@@ -43,6 +43,7 @@
     "vue-i18n": "^8.22.1",
     "vue-router": "^3.2.0",
     "vue-session": "^1.0.0",
+    "vue-uuid": "^2.1.0",
     "vuetify": "^2.5.8"
   },
   "devDependencies": {

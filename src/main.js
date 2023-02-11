@@ -6,9 +6,11 @@ import axios from 'axios';
 import i18n from '@/plugins/i18n';
 import VueSession from 'vue-session';
 import Store from '@/plugins/store';
+import UUID from 'vue-uuid';
 
 Vue.config.productionTip = false;
 Vue.use(VueSession);
+Vue.use(UUID);
 
 Vue.prototype.$store = Store;
 
