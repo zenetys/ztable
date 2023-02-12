@@ -198,13 +198,6 @@
     bottom: 2vh !important;
     left: 2vw !important;
 }
-
-.__sub-level-label {
-    display: block;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
 </style>
 
 <script>
