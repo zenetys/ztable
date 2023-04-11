@@ -12,7 +12,7 @@ import { generateLinkToSubPath, generateUrlFromPath } from '@/plugins/utils';
  */
 export function getCellContent(value, item, key) {
     if (DataManager.config.dataType === 'generic') {
-        return formatContentForSubLinks(value, key, item?.__index);
+        return formatContentForSubLinks(value, key, item?.id);
     } else {
         // Temporary - to be replaced by API specific methods
         return NavitiaManager.getCellContent(value, item, key);

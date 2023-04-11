@@ -483,10 +483,21 @@ export default {
     },
     computed: {
         formattedTableItems() {
-            return this.tableItems?.map((item, index) => ({
-                id: index,
-                ...item,
-            }));
+            return this.tableItems?.map((item, index) => {
+                const itemDataType = typeof item;
+                const formattedItem = {
+                    id: index,
+                }
+
+                 if (['string', 'number', 'boolean'].includes(itemDataType)) {
+                     /* If the data is a simple value, transform the item into a readable object with 
+                    * a single value property, for the "value" header */
+                   Object.assign(formattedItem, { value: item });
+                } else {
+                    Object.assign(formattedItem, item );
+                }
+                return formattedItem;
+            });
         },
         /**
          * Table headers filtered on enabled columns. Vue does not like the
@@ -827,18 +838,28 @@ export default {
         extractHeadersFromData(resetState) {
             let tableItems = this.tableItems || [];
             let headersByName = {};
-            const headers = [];
+            let headers = [];
 
-            // Store every unique header key
-            tableItems.forEach((item) => {
-                for (const key in item) {
-                    if (!headersByName[key]) {
-                        const header = { value: key };
-                        headersByName[key] = header;
-                        headers.push(header);
-                    }
+            if (this.tableItems.length > 0) {
+                const tableDataType = typeof this.tableItems[0];
+
+                if (['string', 'number', 'boolean'].includes(tableDataType)) {
+                    /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to 
+                    * avoid decomposing the data and created buggy headers / no headers at all. */
+                    headers = [{ value: 'value' }];
+                } else {
+                    // Store every unique header key
+                    tableItems.forEach((item) => {
+                        for (const key in item) {
+                            if (!headersByName[key]) {
+                                const header = { value: key };
+                                headersByName[key] = header;
+                                headers.push(header);
+                            }
+                        }
+                    });
                 }
-            });
+            }
 
             // Run custom processing of headers
             if (typeof this.tableConfig.customHeadersComputation === 'function') {
