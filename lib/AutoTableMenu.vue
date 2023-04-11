@@ -64,18 +64,18 @@
                         @change="onColumnToggle(header)"
                     />
                 </span>
-                <span>
+                <span class="menu_header_name_container">
                     <p :data-col-name="header.value" v-if="header.text">{{ header.text }}</p>
                     <p :data-col-name="header.value" v-else class="font-italic">{{ header.value }}</p>
                 </span>
-                <span>
+                <span class="menu_input_container">
                     <input
-                        type="text"
+                        type="number"
                         placeholder="none"
                         :value="getColumnWidth(header)"
                         :disabled="!header.enabled"
                         :class="(header.enabled ? '' : 'disabled ') + (hasFixedWidths ? '' : 'font-italic')"
-                        class="text-right"
+                        class="text-right menu_input"
                         @change="onWidthChange(header, $event)"
                     />
                 </span>
@@ -131,11 +131,20 @@
     padding: 0.7em;
     filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));
 }
+.menu_header_name_container p {
+    margin-bottom: 0!important;
+}
+.menu_input_container {
+    border-bottom: 1px dashed black;
+}
+.menu_input {
+    min-width: 64px;
+}
 .menu-drag-class {
     background-color: rgba(0, 0, 0, 0.3)
 }
 .menu_row {
-    margin-bottom: 0.20em;
+    margin-bottom: 0.55em;
 }
 .menu_row > span {
     font-size: 12px;
@@ -186,10 +195,9 @@ button,
 input {
     outline: none;
 }
-input[type="text"] {
+input[type="number"] {
     max-width: 70%;
     line-height: 1em;
-    border-bottom: 1px dashed black;
     padding-right: 3px;
 }
 input[type="checkbox"] {
@@ -235,8 +243,11 @@ export default {
     },
     methods: {
         getColumnWidth(header) {
+            const minWidth = 75;
+            const maxWidth = 1000;
+            
             let w = header.width ?? this.measuredWidths[header.value];
-            return (typeof w === 'number' && !isNaN(w)) ? Math.round(w) : undefined;
+            return (typeof w === 'number' && !isNaN(w) && w < maxWidth && w >= minWidth) ? Math.round(w) : minWidth;
         },
         measureWidths() {
             this.measuredWidths = {};
@@ -314,7 +325,7 @@ export default {
         onWidthChange(header, ev) {
             let width = parseInt(ev.target.value, 10);
             if (isNaN(width))
-                width = undefined;
+                width = 75;
             console.log('AutoTableMenu: Emit width:', header, width);
             this.$emit('width', header, width);
         },
