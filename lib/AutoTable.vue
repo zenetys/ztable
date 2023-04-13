@@ -4,6 +4,7 @@
             :showIcons="showIcons"
             :items="headers"
             :hasFixedWidths="hasFixedWidths"
+            :maxHeight="computedMenuMaxHeight"
             @swap="onColumnSwap"
             @toggle="onColumnToggle"
             @export="exportToCsv(tableItems)"
@@ -513,6 +514,13 @@ export default {
                 this.sortDesc,
                 this.hasFixedWidths,
             ];
+        },
+        /**
+         * Table height with offsets, it is used to compute the menu max height.
+         * @returns {number} Table height with offsets.
+         */
+        computedMenuMaxHeight() {
+            return Math.round(this.tableHeight * 0.8);
         },
     },
     data() {

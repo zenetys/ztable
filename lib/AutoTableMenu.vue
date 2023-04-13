@@ -45,6 +45,7 @@
             @dragstart="onDragStart"
             @dragover="onDragOver"
             @dragend="onDragEnd"
+            :style="`max-height: ${maxHeight}px;`"
         >
             <div class="flex justify-between items-center menu_row">
                 <span></span>
@@ -214,6 +215,7 @@ export default {
         items: [],
         hasFixedWidths: Boolean,
         showIcons: Boolean,
+        maxHeight: Number,
     },
     emits: ['swap', 'toggle', 'export', 'reset'],
     data() {
