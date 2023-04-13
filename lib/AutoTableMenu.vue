@@ -47,53 +47,59 @@
             @dragend="onDragEnd"
             :style="`max-height: ${maxHeight}px;`"
         >
-            <div class="flex justify-between items-center menu_row">
-                <span></span>
-                <span class="font-weight-medium">Column</span>
-                <span class="font-weight-medium">Width</span>
+            <div class="menu_header">
+                <div class="flex justify-between items-center">
+                    <span></span>
+                    <span class="font-weight-medium">Column</span>
+                    <span class="font-weight-medium">Width</span>
+                </div>
             </div>
-            <div
-                v-for="header in items"
-                :key="header.value"
-                class="flex justify-between items-center menu_row"
-                draggable="true"
-            >
-                <span>
-                    <input
-                        type="checkbox"
-                        :checked="header.enabled"
-                        @change="onColumnToggle(header)"
-                    />
-                </span>
-                <span class="menu_header_name_container">
-                    <p :data-col-name="header.value" v-if="header.text">{{ header.text }}</p>
-                    <p :data-col-name="header.value" v-else class="font-italic">{{ header.value }}</p>
-                </span>
-                <span class="menu_input_container">
-                    <input
-                        type="number"
-                        placeholder="none"
-                        :value="getColumnWidth(header)"
-                        :disabled="!header.enabled"
-                        :class="(header.enabled ? '' : 'disabled ') + (hasFixedWidths ? '' : 'font-italic')"
-                        class="text-right menu_input"
-                        @change="onWidthChange(header, $event)"
-                    />
-                </span>
+            <div class="menu_rows_container">
+                <div
+                    v-for="header in items"
+                    :key="header.value"
+                    class="flex justify-between items-center menu_row"
+                    draggable="true"
+                >
+                    <span>
+                        <input
+                            type="checkbox"
+                            :checked="header.enabled"
+                            @change="onColumnToggle(header)"
+                        />
+                    </span>
+                    <span class="menu_header_name_container">
+                        <p :data-col-name="header.value" v-if="header.text">{{ header.text }}</p>
+                        <p :data-col-name="header.value" v-else class="font-italic">{{ header.value }}</p>
+                    </span>
+                    <span class="menu_input_container">
+                        <input
+                            type="number"
+                            placeholder="none"
+                            :value="getColumnWidth(header)"
+                            :disabled="!header.enabled"
+                            :class="(header.enabled ? '' : 'disabled ') + (hasFixedWidths ? '' : 'font-italic')"
+                            class="text-right menu_input"
+                            @change="onWidthChange(header, $event)"
+                        />
+                    </span>
+                </div>
             </div>
-            <div class="flex justify-between mt-3">
-                <v-btn
-                    x-small
-                    color="red"
-                    class="primary_button"
-                    @click="onResetButtonClicked"
-                >Reset</v-btn>
-                <v-btn
-                    x-small
-                    color="primary"
-                    class="primary_button"
-                    @click="enabled = false"
-                >Close</v-btn>
+            <div class="menu_footer">
+                <div class="flex justify-between mt-3">
+                    <v-btn
+                        x-small
+                        color="red"
+                        class="primary_button"
+                        @click="onResetButtonClicked"
+                    >Reset</v-btn>
+                    <v-btn
+                        x-small
+                        color="primary"
+                        class="primary_button"
+                        @click="enabled = false"
+                    >Close</v-btn>
+                </div>
             </div>
         </aside>
    </div>
@@ -103,9 +109,6 @@
 .v-tooltip__content {
     font-size: 10px;
     padding: 0px 8px;
-}
-.menu {
-    position: relative
 }
 .icons-panel {
     position: absolute;
@@ -129,14 +132,40 @@
     top: 35px;
     right: 26px;
     z-index: 10;
-    padding: 0.7em;
+
     filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));
+    overflow: scroll;
+
+    .menu_header {
+        font-size: 12px;
+        padding: 0.5em 0.7em 0 0.7em;
+        width: 100%;
+        position: sticky;
+        background: #fff;
+        top: 0px;
+        right: 0;
+    }
+
+    .menu_rows_container {
+        overflow: scroll;
+        padding: 0.5em 0.7em 0 0.7em;
+    }
+
+    .menu_footer {
+        width: 100%;
+        position: sticky;
+        bottom: 0px;
+        background: #fff;
+        padding: 0 0.7em 0.5em 0.7em;
+    }
 }
-.menu_header_name_container p {
-    margin-bottom: 0!important;
+.menu_header_name_container p, span {
+    margin-bottom: 0px!important;
+    height: 2em;
 }
 .menu_input_container {
     border-bottom: 1px dashed black;
+    height: 2em;
 }
 .menu_input {
     min-width: 64px;
@@ -152,6 +181,7 @@
 }
 .menu_row > :nth-child(1) {
     width: 20%;
+    height: 100%;
 }
 .menu_row > :nth-child(2) {
     width: 50%;
@@ -203,8 +233,6 @@ input[type="number"] {
 }
 input[type="checkbox"] {
     accent-color: #0f6e84;
-    position: relative;
-    top: 2px;
 }
 </style>
 
