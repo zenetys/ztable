@@ -25,16 +25,16 @@
         "README.md"
     ],
     "dependencies": {
+        "@mdi/font": "^5.9.55",
         "axios": "^0.24.0",
         "vue": "^2.6.11",
         "vue-router": "^3.2.0",
         "vue-uuid": "^2.1.0",
-        "@mdi/font": "^5.9.55",
         "vuetify": "^2.5.8"
     },
     "devDependencies": {
-        "@vue/cli-plugin-babel": "~4.5.0",
-        "@vue/cli-service": "~4.5.0",
+        "@vue/cli-plugin-babel": "^5.0.8",
+        "@vue/cli-service": "^5.0.8",
         "babel-eslint": "^10.1.0",
         "css-loader": "^5.0.1",
         "sass": "~1.32.0",
@@ -42,8 +42,8 @@
         "vue-template-compiler": "^2.6.14"
     },
     "peerDependencies": {
-        "vue": "^2.6.11",
         "axios": "^0.24.0",
+        "vue": "^2.6.11",
         "vuetify": "^2.5.8"
     }
 }
