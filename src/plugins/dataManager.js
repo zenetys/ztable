@@ -278,12 +278,16 @@ export default {
             }
         }
 
-        if (Array.isArray(foundData) && foundData.length > 0) {
-            this.tableData = foundData;
-            /* If the data is an array, generate new table headers based on data*/
-            this.generateColumnDefinitions();
-        } else if (foundData && typeof foundData === 'object') {
-            this.objectData = foundData;
+        if (foundData) {
+            if (Array.isArray(foundData) && foundData.length > 0) {
+                this.tableData = foundData;
+                /* If the data is an array, generate new table headers based on data*/
+                this.generateColumnDefinitions();
+            } else if (foundData && typeof foundData === 'object') {
+                this.objectData = foundData;
+            } else {
+                this.objectData = { value: foundData };
+            }
         } else {
             this.clearFoundData();
             /* If no data was found, emit an event to re-open the config dialog and highlight the error */
