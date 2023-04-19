@@ -15,7 +15,7 @@
             :id="tableConfig.id"
             :headers="computedHeaders"
             :items="formattedTableItems"
-            :search="tableConfig.search"
+            :search="search"
             class="auto-table"
             :class="hasFixedWidths ? '' : 'sizable'"
             :item-class="tableConfig.itemClass"
@@ -459,14 +459,12 @@ const defaultColumnDefinition = {
 
 const defaultConfig = {
     id: 'autotable',
-    api: undefined,
     height: undefined,
     itemClass: undefined,
     clickable: undefined,
     paginated: undefined,
     heightOffsets: undefined,
     customHeadersComputation: undefined,
-    search: undefined,
     dataReady: [],
     columns: undefined,
     path: '',
@@ -480,6 +478,24 @@ export default {
     props: {
         config: {
             type: [ Object, String ],
+        },
+        /**
+         * A search query to filter table data.
+         * @property
+         * @type {String}
+         */
+        search: {
+            type: String,
+            default: '',
+        },
+        /**
+         * The api url to fetch the table data from.
+         * @property
+         * @type { Promise | String }
+         */
+        api: {
+            type: [ Promise, String ],
+            default: '',
         },
     },
     computed: {
@@ -546,7 +562,6 @@ export default {
             sortDesc: false,
             sortBy: '',
             tableConfig: {
-                api: '',
                 height: 'auto',
             },
             showIcons: false,
@@ -557,10 +572,11 @@ export default {
             immediate: true,
             handler() {
                 this.loadConfig();
+                this.fetchTableItems();
             },
             deep: true,
         },
-        'tableConfig.api': {
+        api: {
             immediate: true,
             handler() {
                 this.fetchTableItems();
@@ -603,10 +619,10 @@ export default {
                 this.tableItems = data;
             }
 
-            const api = this.tableConfig.api;
+            const api = this.api;
 
             /* it starts here */
-            console.log('AutoTable: fetchTableItems: tableConfig.api =', api);
+            console.log('AutoTable: fetchTableItems: api =', api);
 
             if (!api) {
                 console.log('AutoTable: fetchTableItems: invalid url, set no data');

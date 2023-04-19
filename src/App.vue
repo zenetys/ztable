@@ -12,7 +12,7 @@
                 :path="DataManager.config.dataPath"
                 :mode="computedBreadcrumbsMode"
             />
-            <AutoTable v-if="DataManager.tableData" :config="tableConfig" />
+            <AutoTable v-if="DataManager.tableData" :config="tableConfig" :api="api" :search="search"/>
             <AutoObject v-if="DataManager.objectData" :object="DataManager.objectData" />
             <ConfigDialog />
             <v-btn
@@ -76,6 +76,7 @@ export default {
     data() {
         return {
             DataManager,
+            search: '',
         };
     },
     computed: {
@@ -85,7 +86,6 @@ export default {
          */
         tableConfig() {
             return ({
-                api: this.DataManager.dataPromise,
                 path: this.DataManager.config.dataPath,
                 columns: this.DataManager.columnDefinitions,
                 paginated: true,
@@ -107,6 +107,13 @@ export default {
                 },
                 heightOffsets: [44],
             });
+        },
+        /**
+         * Returns the DataManager's api dataPromise or a string url to fetch the data from.
+         * @returns {Promise | String} the DataManager's api dataPromise
+         */
+        api() {
+            return this.DataManager.dataPromise;
         },
         /**
          * Sets the breadcrumbs component's mode depending on the data type
