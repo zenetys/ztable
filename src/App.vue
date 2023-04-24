@@ -12,7 +12,13 @@
                 :path="DataManager.config.dataPath"
                 :mode="computedBreadcrumbsMode"
             />
-            <AutoTable v-if="DataManager.tableData" :config="tableConfig" :api="api" :search="search"/>
+            <AutoTable
+                v-if="DataManager.tableData"
+                :config="tableConfig"
+                :api="api"
+                :search="search"
+                @api-override="handleApiOverride"
+            />
             <AutoObject v-if="DataManager.objectData" :object="DataManager.objectData" />
             <ConfigDialog />
             <v-btn
@@ -85,7 +91,7 @@ export default {
          * @returns {Config} the current config
          */
         tableConfig() {
-            return ({
+            return {
                 path: this.DataManager.config.dataPath,
                 columns: this.DataManager.columnDefinitions,
                 paginated: true,
@@ -105,8 +111,9 @@ export default {
                     /* Move the index column to the first position */
                     headers.unshift(headers.splice(headers.length - 1, 1)[0]);
                 },
+                api: null,
                 heightOffsets: [44],
-            });
+            };
         },
         /**
          * Returns the DataManager's api dataPromise or a string url to fetch the data from.
@@ -213,8 +220,31 @@ export default {
                 });
             }
         },
+        /**
+         * Handle the API URL being overriden by a provided config API
+         * @param {string} newApi the new API URL
+         */
+        handleApiOverride(newApi) {
+            this.DataManager.config.dataUrl = newApi;
+            this.redirectForApiOverride();
+        },
+        /**
+         * Redirect to the current route with the API URL override
+         */
+        redirectForApiOverride() {
+            const configApiRedirect = {
+                ...this.$route.query,
+                source: this.tableConfig.api,
+            };
+            this.$router.replace({ query: configApiRedirect });
+        },
     },
     created() {
+        /* Check if there was an API URL override by the config */
+        if (this.api && this.tableConfig.api && this.tableConfig.api !== this.api) {
+            this.redirectForApiOverride();
+        }
+
         EventBus.$on('error', this.handleError);
         EventBus.$on('no-data-at-path', () => this.openConfigDialog(['no-data-at-path']));
     },

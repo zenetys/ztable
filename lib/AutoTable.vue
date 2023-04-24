@@ -468,6 +468,7 @@ const defaultConfig = {
     dataReady: [],
     columns: undefined,
     path: '',
+    api: null,
 };
 
 export default {
@@ -538,6 +539,22 @@ export default {
         computedMenuMaxHeight() {
             return Math.round(this.tableHeight * 0.8);
         },
+        /**
+         * The computed api url to fetch the table data from.
+         * The config api has priority over the prop api.
+         * @returns {string} The api url.
+         */
+        computedApi() {
+            return this.tableConfig.api || this.api;
+        },
+        /**
+         * The computed search query to filter table data.
+         * The config search has priority over the prop search.
+         * @returns {string} The search query.
+         */
+        computedSearch() {
+            return this.tableConfig.search || this.search;
+        },
     },
     data() {
         return {
@@ -576,10 +593,16 @@ export default {
             },
             deep: true,
         },
-        api: {
+        computedApi: {
             immediate: true,
             handler() {
                 this.fetchTableItems();
+                if (this.computedApi && this.api && (this.computedApi !== this.api)) {
+                    /** Config Api url has priority over the "api" prop, so the prop is overridden". 
+                     * An event is emitted to notify the parent component.
+                    */
+                    this.emitApiOverride(this.computedApi);
+                }
             },
         },
         tableItems: {
@@ -619,7 +642,7 @@ export default {
                 this.tableItems = data;
             }
 
-            const api = this.api;
+            const api = this.computedApi;
 
             /* it starts here */
             console.log('AutoTable: fetchTableItems: api =', api);
@@ -1191,6 +1214,13 @@ export default {
             console.log('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
             arrayMove(this.headers, oldIndex, newIndex);
         },
+        /**
+         * Emit an event to notify the parent component that the API URL was overridden from the "api" prop.
+         * @param {string} newApi - The new api url in use
+         */
+        emitApiOverride(newApi) {
+            this.$emit('api-override', newApi);
+        }
     },
     mounted() {
         this.$nextTick(() => this.setTableHeight());
