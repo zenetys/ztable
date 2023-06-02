@@ -501,14 +501,14 @@ export default {
     },
     computed: {
         formattedTableItems() {
-            return this.tableItems?.map((item, index) => {
+            return this.tableItems.map((item, index) => {
                 const itemDataType = typeof item;
                 const formattedItem = {
                     id: index,
                 }
 
                  if (['string', 'number', 'boolean'].includes(itemDataType)) {
-                     /* If the data is a simple value, transform the item into a readable object with 
+                     /* If the data is a simple value, transform the item into a readable object with
                     * a single value property, for the "value" header */
                    Object.assign(formattedItem, { value: item });
                 } else {
@@ -558,7 +558,7 @@ export default {
     },
     data() {
         return {
-            tableItems: undefined,
+            tableItems: [],
             tableHeight: '',
             isLoading: false,
             tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
@@ -598,7 +598,7 @@ export default {
             handler() {
                 this.fetchTableItems();
                 if (this.computedApi && this.api && (this.computedApi !== this.api)) {
-                    /** Config Api url has priority over the "api" prop, so the prop is overridden". 
+                    /** Config Api url has priority over the "api" prop, so the prop is overridden".
                      * An event is emitted to notify the parent component.
                     */
                     this.emitApiOverride(this.computedApi);
@@ -883,6 +883,7 @@ export default {
          * and setup columns from the config in the headers
          */
         extractHeadersFromData(resetState) {
+            console.log("TABLEITEMS:", this.tableItems)
             let tableItems = this.tableItems || [];
             let headersByName = {};
             let headers = [];
@@ -891,7 +892,7 @@ export default {
                 const tableDataType = typeof this.tableItems[0];
 
                 if (['string', 'number', 'boolean'].includes(tableDataType)) {
-                    /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to 
+                    /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to
                     * avoid decomposing the data and created buggy headers / no headers at all. */
                     headers = [{ value: 'value' }];
                 } else {
