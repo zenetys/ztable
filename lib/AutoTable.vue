@@ -130,8 +130,7 @@
                             >
                                 <slot
                                     :name="header.columnDefinition.slotName"
-                                    v-bind:value="item[header.value]"
-                                    v-bind:item="item"
+                                     v-bind="{ header, item }"
                                 />
                             </span>
                             <span
