@@ -13,6 +13,7 @@
         />
         <v-data-table
             :id="tableConfig.id"
+            :value="selectedItems"
             :headers="computedHeaders"
             :items="formattedTableItems"
             :search="search"
@@ -149,6 +150,9 @@
                                 :style="header.columnDefinition.cssStyle(item[header.value], item)"
                                 v-text="header.columnDefinition.formatText(item[header.value], item)"
                             />
+                            <span v-else-if="header.value === 'data-table-select'">
+                                <input type="checkbox" @click="handleItemSelect(selectedItems)" :checked="selectedItems.indexOf(item.id)>-1 ? true : false">
+                            </span>
                             <span v-else>No render</span>
                             <span
                                 v-if="header.columnDefinition.copyable"
@@ -503,6 +507,15 @@ export default {
             type: [ Promise, String ],
             default: '',
         },
+
+        /**
+         * @prop {Array} selectedItems - Array of items to select in the table
+         */
+        selectedItems: {
+            type: Array,
+            default: () => [],
+        },
+
         /**
          * @prop {object} tableOptions - An object used to pass custom options
          * and event callbacks to Vuetify's v-data-table component.
@@ -1241,6 +1254,26 @@ export default {
         onColumnSwap(oldIndex, newIndex) {
             console.log('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
             arrayMove(this.headers, oldIndex, newIndex);
+        },
+        /**
+         * Handle the selection of item(s) in the table via their checkbox,
+         * with an optional custom callback from the tableOptions prop
+         * @param {array} newSelected - the updated selected items from the table
+         */
+        handleItemSelect(newSelected) {
+            if (this.tableOptions?.handlers?.handleItemSelect) {
+                this.tableOptions.handlers.handleItemSelect(newSelected);
+            }
+        },
+        /**
+         * Handle the click event on a table row with an optional
+         * custom callback from the tableOptions prop
+         * @param {object} item - the clicked item
+         */
+        handleItemClick(item) {
+            if (this.tableOptions?.handlers?.handleItemClick) {
+                this.tableOptions.handlers.handleItemClick(item);
+            }
         },
         /**
          * Emit an event to notify the parent component that the API URL was overridden from the "api" prop.
