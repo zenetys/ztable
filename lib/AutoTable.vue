@@ -151,13 +151,13 @@
                                 v-text="header.columnDefinition.formatText(item[header.value], item)"
                             />
                             <span v-else-if="header.value === 'data-table-select'">
-                                <input type="checkbox" @click="handleItemSelect(selectedItems)" :checked="selectedItems.indexOf(item.id)>-1 ? true : false">
+                                <input type="checkbox" @click.stop="handleItemSelect(item)" :checked="selectedItems.indexOf(item.id)>-1 ? true : false">
                             </span>
                             <span v-else>No render</span>
                             <span
                                 v-if="header.columnDefinition && header.columnDefinition.copyable"
                                 class="cp-span mdi mdi-content-copy"
-                                @click="copyCellContent(tableConfig.id, headerIndex, itemIndex, $event)"
+                                @click.stop="copyCellContent(tableConfig.id, headerIndex, itemIndex, $event)"
                             >
                                 <span class="cell-copied-tooltip">Copied!</span>
                             </span>
