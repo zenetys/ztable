@@ -62,7 +62,7 @@
                             :data-col-name="header.value"
                         >
                             <span>{{ header.text }}<template
-                                v-if="header.columnDefinition.sortable">
+                                v-if="header.columnDefinition && header.columnDefinition.sortable">
                                     <v-icon
                                         v-if="sortBy === header.value"
                                         class="header-sort-icon"
@@ -108,16 +108,16 @@
                         <td
                             v-for="(header, headerIndex) in headers"
                             :key="headerIndex"
-                            :title="header.columnDefinition.getTitle(item)"
+                            :title="header.columnDefinition ? header.columnDefinition.getTitle(item) : 'None'"
                             :class="getCellClass(header, item)"
-                            v-on="header.columnDefinition.copyable
+                            v-on="header.columnDefinition && header.columnDefinition.copyable
                                 ? { mouseenter: onMouseEnterBodyCell, mouseleave: onMouseLeaveBodyCell }
                                 : {}
                             "
                             :data-col-name="header.value"
                         >
                             <span
-                                v-if="header.columnDefinition.formatHtml"
+                                v-if="header.columnDefinition && header.columnDefinition.formatHtml"
                                 :title="
                                     typeof header.columnDefinition.tooltip === 'function'
                                         ? header.columnDefinition.tooltip(item[header.value], item)
@@ -127,7 +127,7 @@
                                 v-html="header.columnDefinition.formatHtml(item[header.value], item)"
                             ></span>
                             <span
-                                v-else-if="typeof header.columnDefinition.slotName === 'string'"
+                                v-else-if="header.columnDefinition && typeof header.columnDefinition.slotName === 'string'"
                                 :title="
                                     typeof header.columnDefinition.tooltip === 'function'
                                         ? header.columnDefinition.tooltip(item[header.value], item)
@@ -137,11 +137,11 @@
                             >
                                 <slot
                                     :name="header.columnDefinition.slotName"
-                                     v-bind="{ header, item }"
+                                    v-bind="{ header, item }"
                                 />
                             </span>
                             <span
-                                v-else-if="header.columnDefinition.formatText"
+                                v-else-if="header.columnDefinition && header.columnDefinition.formatText"
                                 :title="
                                     typeof header.columnDefinition.tooltip === 'function'
                                         ? header.columnDefinition.tooltip(item[header.value], item)
@@ -155,7 +155,7 @@
                             </span>
                             <span v-else>No render</span>
                             <span
-                                v-if="header.columnDefinition.copyable"
+                                v-if="header.columnDefinition && header.columnDefinition.copyable"
                                 class="cp-span mdi mdi-content-copy"
                                 @click="copyCellContent(tableConfig.id, headerIndex, itemIndex, $event)"
                             >
@@ -766,7 +766,7 @@ export default {
          *      given header (column) and row object.
          */
         getCellClass(header, tableItem) {
-            return header.columnDefinition.cssClass(tableItem) +
+            return header.columnDefinition && header.columnDefinition.cssClass(tableItem) +
                 ' v-data-table__divider col_' + header.value + ' cell_' + header.value +
                 (header.columnDefinition.truncable ? ' truncable' : '') +
                 (header.columnDefinition.copyable ? ' copyable' : '');
