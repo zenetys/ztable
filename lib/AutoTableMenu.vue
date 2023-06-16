@@ -161,20 +161,15 @@
 }
 .menu_header_name_container p, span {
     margin-bottom: 0px!important;
-    height: 2em;
 }
 .menu_input_container {
     border-bottom: 1px dashed black;
-    height: 2em;
 }
 .menu_input {
     min-width: 64px;
 }
 .menu-drag-class {
     background-color: rgba(0, 0, 0, 0.3)
-}
-.menu_row {
-    margin-bottom: 0.55em;
 }
 .menu_row > span {
     font-size: 12px;
