@@ -457,7 +457,7 @@ const defaultColumnDefinition = {
     formatText: (value) => value,
     tooltip: () => '',
     getTitle: () => '',
-    enabled: true,
+    enabled: false,
     cssClass: () => '',
     cssStyle: () => '',
     order: undefined,
@@ -985,6 +985,7 @@ export default {
             this.hasFixedWidths = getGlobalPreference('hasFixedWidths', false);
             this.sortBy = getGlobalPreference('sortBy', '');
             this.sortDesc = getGlobalPreference('sortDesc', false);
+            defaultColumnDefinition.enabled = this.tableConfig && Object.keys(this.tableConfig.columns).length > 0 ? false : true;
 
             for (let i = 0; i < headers.length; i++) {
                 const header = headers[i];
@@ -998,6 +999,11 @@ export default {
                     ?? (header.value.charAt(0).toUpperCase() + header.value.slice(1));
                 header.divider = true; // FIXME: useless ?
                 header.columnDefinition = columnDefinition;
+
+                if (this.tableConfig.columns[header.value] !== undefined) {
+                    header.columnDefinition.enabled = this.tableConfig.columns[header.value].enabled === false ? false : true;
+                }
+
                 if (typeof header.columnDefinition.sortable === "function") {
                     this.sortableFunctions[header.value] = header.columnDefinition.sortable;
                 }
