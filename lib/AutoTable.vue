@@ -766,10 +766,15 @@ export default {
          *      given header (column) and row object.
          */
         getCellClass(header, tableItem) {
-            return header.columnDefinition && header.columnDefinition.cssClass(tableItem) +
-                ' v-data-table__divider col_' + header.value + ' cell_' + header.value +
-                (header.columnDefinition.truncable ? ' truncable' : '') +
-                (header.columnDefinition.copyable ? ' copyable' : '');
+            if (header.columnDefinition) {
+                return header.columnDefinition.cssClass(tableItem) +
+                     ` v-data-table__divider` +
+                     ` col_${header.value}` +
+                     ` cell_${header.value}` +
+                     (header.columnDefinition.truncable ? ' truncable' : '') +
+                     (header.columnDefinition.copyable ? ' copyable' : '');
+            }
+            return 'v-data-table__divider';
         },
         getHeaderFixedWidthStyle(hEl) {
             let style = ''
