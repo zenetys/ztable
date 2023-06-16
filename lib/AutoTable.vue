@@ -685,10 +685,10 @@ export default {
             const api = this.computedApi;
 
             /* it starts here */
-            console.log('AutoTable: fetchTableItems: api =', api);
+            console.debug('AutoTable: fetchTableItems: api =', api);
 
             if (!api) {
-                console.log('AutoTable: fetchTableItems: invalid url, set no data');
+                console.debug('AutoTable: fetchTableItems: invalid url, set no data');
                 this.tableItems = [];
                 return;
             }
@@ -707,7 +707,7 @@ export default {
         async loadConfig() {
             if (typeof this.$props.config == "object") {
                 this.tableConfig = Object.assign({}, defaultConfig, this.$props.config);
-                console.log('AutoTable: tableConfig =', this.tableConfig);
+                console.debug('AutoTable: tableConfig =', this.tableConfig);
                 return;
             }
 
@@ -743,7 +743,7 @@ export default {
             });
 
             this.tableConfig = Object.assign({}, defaultConfig, config);
-            console.log('AutoTable: tableConfig =', this.tableConfig);
+            console.debug('AutoTable: tableConfig =', this.tableConfig);
         },
         async fetchConfig(url) {
             const res = await axios(url);
@@ -839,7 +839,7 @@ export default {
         },
         sortCol(header) {
             if (this.resizeCurCol) {
-                console.log('AutoTable: sortCol: Resize in progress, cancel event');
+                console.debug('AutoTable: sortCol: Resize in progress, cancel event');
                 return;
             }
             if (header.columnDefinition.sortable === false) {
@@ -882,7 +882,7 @@ export default {
 
             /* persist to localStorage */
             const newPreferencesJson = JSON.stringify(this.preferences);
-            console.log('AutoTable: savePreferences:', newPreferencesJson);
+            console.debug('AutoTable: savePreferences:', newPreferencesJson);
             try { localStorage.setItem(this.tableConfig.id, newPreferencesJson); }
             catch (e) { console.error('AutoTable: savePreferences: localStorage.setItem failed:', e); }
         },
@@ -928,7 +928,7 @@ export default {
          * and setup columns from the config in the headers
          */
         extractHeadersFromData(resetState) {
-            console.log("TABLEITEMS:", this.tableItems)
+            console.debug("TABLEITEMS:", this.tableItems)
             let tableItems = this.tableItems || [];
             let headersByName = {};
             let headers = [];
@@ -961,7 +961,7 @@ export default {
             }
 
             this.preferences = JSON.parse(localStorage.getItem(this.tableConfig.id));
-            console.log('AutoTable: extractHeadersFromData: preferences:', JSON.stringify(this.preferences))
+            console.debug('AutoTable: extractHeadersFromData: preferences:', JSON.stringify(this.preferences))
 
             const getColumnPreference = (header, prefName, defaultValue) => {
                 if (!resetState && this.preferences?.columns?.[header.value]?.[prefName] !== undefined)
@@ -1088,12 +1088,12 @@ export default {
                 const colTh = document.querySelector('#' + this.tableConfig.id + ' th.col_'+el.value);
                 if (colTh) {
                     const measuredWidth = colTh.getBoundingClientRect().width;
-                    console.log('AutoTable: fixColumnsWidth: i=', i, ', el=', el, ', headerWidth=', el.width,
+                    console.debug('AutoTable: fixColumnsWidth: i=', i, ', el=', el, ', headerWidth=', el.width,
                         ', measuredWidth=', measuredWidth, ', cssWidth=', colTh.style.width);
                     this.$set(el, 'width', measuredWidth);
                 }
                 else {
-                    console.log('AutoTable: fixColumnsWidth: i=', i, ', el=', el, ', headerWidth=', el.width,
+                    console.debug('AutoTable: fixColumnsWidth: i=', i, ', el=', el, ', headerWidth=', el.width,
                         ', HIDDEN');
                 }
             });
@@ -1141,7 +1141,7 @@ export default {
                 /* commit updated width to the header object */
                 const diffX = e.pageX - this.resizeInitialX;
                 const width = this.resizeCurHeader.width + diffX;
-                console.log('AutoTable: onResizeMouseUp, column=', this.resizeCurHeader.value,
+                console.debug('AutoTable: onResizeMouseUp, column=', this.resizeCurHeader.value,
                     ', initialWidth=', this.resizeCurHeader.width, ', initialPageX=', this.resizeInitialX,
                     ', e.pageX=', e.pageX, ', newWidth=', width);
                 this.resizeCurHeader.width = width;
@@ -1236,17 +1236,17 @@ export default {
         /* MENU EVENTS */
 
         onReset() {
-            console.log('AutoTable: onReset: Received @reset from menu');
+            console.debug('AutoTable: onReset: Received @reset from menu');
             localStorage.removeItem(this.tableConfig.id);
             this.extractHeadersFromData(true);
         },
         onWidthChange(header, width) {
-            console.log('AutoTable: onWidthChange: Received @width from menu:', header, width);
+            console.debug('AutoTable: onWidthChange: Received @width from menu:', header, width);
             this.fixColumnsWidth();
             header.width = width;
         },
         onColumnToggle(header, width) {
-            console.log('AutoTable: onColumnToggle: Received @toggle from menu:', header, width);
+            console.debug('AutoTable: onColumnToggle: Received @toggle from menu:', header, width);
             header.enabled = !header.enabled;
             if (header.enabled && this.hasFixedWidths)
                 header.width = width ?? DEFAULT_FIXED_COLUMN_WIDTH;
@@ -1257,7 +1257,7 @@ export default {
          * @param {number} newIndex - new position
          */
         onColumnSwap(oldIndex, newIndex) {
-            console.log('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
+            console.debug('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
             arrayMove(this.headers, oldIndex, newIndex);
         },
         /**
