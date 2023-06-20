@@ -37,7 +37,6 @@
             :show-select="tableOptions.showSelect"
             :single-select="tableOptions.singleSelect"
             v-bind="tableOptions.vDataTableProps"
-            :multi-sort="tableOptions.multiSort"
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead
@@ -867,8 +866,8 @@ export default {
             this.sortBy = header.value;
         },
         customSort(items, sortBy, isDesc) {
-            const cmpFn = this.sortableFunctions[sortBy] || cmpString;
-            return items.sort((a, b) => cmpFn(a[sortBy], b[sortBy]) * (isDesc ? -1 : 1));
+            const cmpFn = this.sortableFunctions[sortBy] || ((a, b) => cmpString(a[sortBy], b[sortBy]));
+            return items.sort((a, b) => cmpFn(a, b) * (isDesc ? -1 : 1));
         },
         savePreferences() {
             const newPreferences = {
