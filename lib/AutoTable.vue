@@ -991,6 +991,7 @@ export default {
             this.hasFixedWidths = getGlobalPreference('hasFixedWidths', false);
             this.sortBy = getGlobalPreference('sortBy', '');
             this.sortDesc = getGlobalPreference('sortDesc', false);
+
             defaultColumnDefinition.enabled = this.tableConfig && Object.keys(this.tableConfig.columns).length > 0 ? false : true;
 
             for (let i = 0; i < headers.length; i++) {
