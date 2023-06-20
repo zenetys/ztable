@@ -948,6 +948,7 @@ export default {
                     /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to
                      * avoid decomposing the data and created buggy headers / no headers at all. */
                     headers = [{ value: 'value' }];
+                    headersByName['value'] = headers[0];
                 }
                 else {
                     // Store every unique header key
