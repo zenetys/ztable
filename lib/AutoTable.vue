@@ -88,15 +88,15 @@
                 >
                     <tr v-if="error" class="v-data-table__empty-wrapper">
                         <td :colspan="headers.length" class="pt-3 red--text">
-                            <div>An error has occurred!</div>
+                            <div>{{ tableConfig.text.error }}</div>
                             <div>{{ error.message }}</div>
                         </td>
                     </tr>
                     <tr v-else-if="isLoading" class="v-data-table__empty-wrapper">
-                        <td :colspan="headers.length" class="pt-3">Loading...</td>
+                        <td :colspan="headers.length" class="pt-3">{{ tableConfig.text.loading }}</td>
                     </tr>
                     <tr v-else-if="items && items.length === 0" class="v-data-table__empty-wrapper">
-                        <td :colspan="headers.length" class="pt-3">No data</td>
+                        <td :colspan="headers.length" class="pt-3">{{ tableConfig.text.nodata }}</td>
                     </tr>
                     <tr
                         v-else
@@ -153,13 +153,13 @@
                             <span v-else-if="header.value === 'data-table-select'">
                                 <input type="checkbox" @click.stop="handleItemSelect(item)" :checked="selectedItems.indexOf(item.id)>-1 ? true : false">
                             </span>
-                            <span v-else>No render</span>
+                            <span v-else>{{ tableConfig.text.norender }}</span>
                             <span
                                 v-if="header.columnDefinition && header.columnDefinition.copyable"
                                 class="cp-span mdi mdi-content-copy"
                                 @click.stop="copyCellContent(tableConfig.id, headerIndex, itemIndex, $event)"
                             >
-                                <span class="cell-copied-tooltip">Copied!</span>
+                                <span class="cell-copied-tooltip">{{ tableConfig.text.copied }}</span>
                             </span>
                         </td>
                     </tr>
@@ -478,6 +478,13 @@ const defaultConfig = {
     columns: undefined,
     path: '',
     api: null,
+    text: {
+        noData: "No data",
+        loading: "Loading...",
+        copied: "Copied!",
+        error: "An error has occurred!",
+        noRender: "No render",
+    },
 };
 
 export default {
