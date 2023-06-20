@@ -549,7 +549,7 @@ export default {
                 const itemDataType = typeof item;
                 const formattedItem = {};
 
-                if (['string', 'number', 'boolean'].includes(itemDataType)) {
+                if (itemDataType === 'string' || itemDataType === 'number' || itemDataType === 'boolean') {
                     /* If the data is a simple value, transform the item into a readable object with
                      * a single value property, for the "value" header */
                     Object.assign(formattedItem, { value: item });
@@ -944,7 +944,7 @@ export default {
             if (this.tableItems.length > 0) {
                 const tableDataType = typeof this.tableItems[0];
 
-                if (['string', 'number', 'boolean'].includes(tableDataType)) {
+                if (tableDataType === 'string' || tableDataType === 'number' || tableDataType === 'boolean') {
                     /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to
                      * avoid decomposing the data and created buggy headers / no headers at all. */
                     headers = [{ value: 'value' }];
