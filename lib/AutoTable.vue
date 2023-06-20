@@ -1015,7 +1015,7 @@ export default {
                     this.sortableFunctions[header.value] = header.columnDefinition.sortable;
                 }
 
-                header.enabled = getColumnPreference(header, 'enabled', true);
+                header.enabled = getColumnPreference(header, 'enabled', defaultColumnDefinition.enabled);
                 header.order = getColumnPreference(header, 'order', i);
                 header.width = getColumnPreference(header, 'width',
                     this.hasFixedWidths ? DEFAULT_FIXED_COLUMN_WIDTH : undefined);
