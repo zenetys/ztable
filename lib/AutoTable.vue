@@ -549,11 +549,12 @@ export default {
                 const itemDataType = typeof item;
                 const formattedItem = {};
 
-                 if (['string', 'number', 'boolean'].includes(itemDataType)) {
-                     /* If the data is a simple value, transform the item into a readable object with
-                    * a single value property, for the "value" header */
-                   Object.assign(formattedItem, { value: item });
-                } else {
+                if (['string', 'number', 'boolean'].includes(itemDataType)) {
+                    /* If the data is a simple value, transform the item into a readable object with
+                     * a single value property, for the "value" header */
+                    Object.assign(formattedItem, { value: item });
+                }
+                else {
                     Object.assign(formattedItem, item );
                 }
 
@@ -646,9 +647,8 @@ export default {
             handler() {
                 this.fetchTableItems();
                 if (this.computedApi && this.api && (this.computedApi !== this.api)) {
-                    /** Config Api url has priority over the "api" prop, so the prop is overridden".
-                     * An event is emitted to notify the parent component.
-                    */
+                    /* Config Api url has priority over the "api" prop, so the prop is overridden".
+                     * An event is emitted to notify the parent component. */
                     this.emitApiOverride(this.computedApi);
                 }
             },
@@ -946,9 +946,10 @@ export default {
 
                 if (['string', 'number', 'boolean'].includes(tableDataType)) {
                     /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to
-                    * avoid decomposing the data and created buggy headers / no headers at all. */
+                     * avoid decomposing the data and created buggy headers / no headers at all. */
                     headers = [{ value: 'value' }];
-                } else {
+                }
+                else {
                     // Store every unique header key
                     tableItems.forEach((item) => {
                         for (const key in item) {
