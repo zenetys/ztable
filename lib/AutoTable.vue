@@ -25,13 +25,17 @@
             fixed-header
             :height="tableHeight"
             :footer-props="tableFooterProps"
-            mobile-breakpoint="0"
             :disable-pagination="!tableConfig.paginated"
             :hide-default-footer="!tableConfig.paginated"
             :hide-default-header="true"
             :custom-sort="customSort"
             :loading="isLoading"
             :options="{ sortBy, sortDesc }"
+            :footer-props="tableConfig.footerProps"
+            :mobile-breakpoint="tableConfig.mobileBreakpoint"
+            :show-select="tableConfig.showSelect"
+            :single-select="tableConfig.singleSelect"
+            v-bind="tableConfig.vDataTableProps"
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead
@@ -479,6 +483,11 @@ const defaultConfig = {
         error: "An error has occurred!",
         noRender: "No render",
     },
+    mobileBreakpoint: 0,
+    footerProps: {},
+    showSelect: false,
+    singleSelect: false,
+    vDataTableProps: undefined,
 };
 
 export default {
