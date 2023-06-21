@@ -13,7 +13,6 @@
         />
         <v-data-table
             :id="tableConfig.id"
-            :value="selectedItems"
             :headers="computedHeaders"
             :items="formattedTableItems"
             :search="search"
@@ -34,7 +33,6 @@
             :footer-props="tableConfig.footerProps"
             :mobile-breakpoint="tableConfig.mobileBreakpoint"
             :show-select="tableConfig.showSelect"
-            :single-select="tableConfig.singleSelect"
             v-bind="tableConfig.vDataTableProps"
         >
             <template v-slot:header="{ props: { headers } }">
@@ -100,8 +98,8 @@
                         v-else
                         v-for="(item, itemIndex) in items"
                         :key="itemIndex"
-                        v-on="tableConfig.clickable ? { click: (ev) => tableConfig.clickable(item, ev) } : {}"
                         :class="getRowClass(item)"
+                        @click="handleClick(item)"
                     >
                         <td
                             v-for="(header, headerIndex) in headers"
@@ -149,7 +147,11 @@
                                 v-text="header.columnDefinition.formatText(item[header.value], item)"
                             />
                             <span v-else-if="header.value === 'data-table-select'">
-                                <input type="checkbox" @click.stop="handleItemSelect(item)" :checked="selectedItems.indexOf(item.id)>-1 ? true : false">
+                                <input
+                                    type="checkbox"
+                                    @click.stop="handleClick(item)"
+                                    :checked="selectedItems && selectedItems[item[tableConfig.selectKey]] ? true : false"
+                                >
                             </span>
                             <span v-else>{{ tableConfig.text.norender }}</span>
                             <span
@@ -469,6 +471,7 @@ const defaultConfig = {
     height: undefined,
     itemClass: undefined,
     clickable: undefined,
+    selectable: undefined,
     paginated: undefined,
     heightOffsets: undefined,
     customHeadersComputation: undefined,
@@ -486,7 +489,7 @@ const defaultConfig = {
     mobileBreakpoint: 0,
     footerProps: {},
     showSelect: false,
-    singleSelect: false,
+    selectKey: "index",
     vDataTableProps: undefined,
 };
 
@@ -522,8 +525,8 @@ export default {
          * @prop {Array} selectedItems - Array of items to select in the table
          */
         selectedItems: {
-            type: Array,
-            default: () => [],
+            type: Object,
+            default: () => { return {} },
         },
     },
     computed: {
@@ -645,6 +648,26 @@ export default {
         },
     },
     methods: {
+        handleClick(item) {
+            if (this.tableConfig.selectable) {
+                if (this.selectedItems[item[this.tableConfig.selectKey]]) {
+                    delete this.selectedItems[item[this.tableConfig.selectKey]];
+                }
+                else  {
+                    this.selectedItems[item[this.tableConfig.selectKey]] = item;
+                }
+
+                if (typeof this.tableConfig.selectable == "function") {
+                    this.tableConfig.selectable(item, { ...this.selectedItems });
+                }
+            }
+
+            if (this.tableConfig.clickable) {
+                if (typeof this.tableConfig.clickable == "function") {
+                    this.tableConfig.clickable(item);
+                }
+            }
+        },
         /**
          * Fetch data from an API and format it.
          */
@@ -709,7 +732,7 @@ export default {
 
             const elements = [
                 'cssClass', 'cssStyle', 'formatText', 'formatHtml', 'tooltip',
-                'sortable', 'clickable', 'truncable', 'copyable',
+                'sortable', 'clickable', 'truncable', 'copyable', 'selectable'
             ];
 
             Object.keys(config.columns).forEach((header) => {
@@ -1253,26 +1276,6 @@ export default {
         onColumnSwap(oldIndex, newIndex) {
             console.debug('AutoTable: onColumnSwap: Received @swap from menu:', oldIndex, newIndex);
             arrayMove(this.headers, oldIndex, newIndex);
-        },
-        /**
-         * Handle the selection of item(s) in the table via their checkbox,
-         * with an optional custom callback from the tableOptions prop
-         * @param {array} newSelected - the updated selected items from the table
-         */
-        handleItemSelect(newSelected) {
-            if (this.tableOptions?.handlers?.handleItemSelect) {
-                this.tableOptions.handlers.handleItemSelect(newSelected);
-            }
-        },
-        /**
-         * Handle the click event on a table row with an optional
-         * custom callback from the tableOptions prop
-         * @param {object} item - the clicked item
-         */
-        handleItemClick(item) {
-            if (this.tableOptions?.handlers?.handleItemClick) {
-                this.tableOptions.handlers.handleItemClick(item);
-            }
         },
         /**
          * Emit an event to notify the parent component that the API URL was overridden from the "api" prop.
