@@ -23,7 +23,6 @@
             item-key="tableConfig.id"
             fixed-header
             :height="tableHeight"
-            :footer-props="tableFooterProps"
             :disable-pagination="!tableConfig.paginated"
             :hide-default-footer="!tableConfig.paginated"
             :hide-default-header="true"
@@ -487,7 +486,7 @@ const defaultConfig = {
         noRender: "No render",
     },
     mobileBreakpoint: 0,
-    footerProps: {},
+    footerProps: { 'items-per-page-options': [50, 100, 150, -1] },
     showSelect: false,
     selectKey: "index",
     vDataTableProps: undefined,
@@ -591,7 +590,6 @@ export default {
             tableItems: [],
             tableHeight: '',
             isLoading: false,
-            tableFooterProps: { 'items-per-page-options': [50, 100, 150, -1] },
             error: undefined,
             headers: [],
             headersByName: {},
