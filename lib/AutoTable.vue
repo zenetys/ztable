@@ -32,11 +32,6 @@
             :custom-sort="customSort"
             :loading="isLoading"
             :options="{ sortBy, sortDesc }"
-            :footer-props="tableOptions.footerProps"
-            :mobile-breakpoint="tableOptions.mobileBreakpoint"
-            :show-select="tableOptions.showSelect"
-            :single-select="tableOptions.singleSelect"
-            v-bind="tableOptions.vDataTableProps"
         >
             <template v-slot:header="{ props: { headers } }">
                 <thead
@@ -520,29 +515,6 @@ export default {
         selectedItems: {
             type: Array,
             default: () => [],
-        },
-
-        /**
-         * @prop {object} tableOptions - An object used to pass custom options
-         * and event callbacks to Vuetify's v-data-table component.
-         * @property {object} footerProps - custom options to the table's footer.
-         * @property {number} mobileBreakpoint - the breakpoint at which the table will switch to mobile mode.
-         * @property {boolean} showSelect - whether to show the select column or not.
-         * @property {boolean} singleSelect - whether to allow only one item to be selected at a time.
-         * @property {boolean} multiSort - whether to allow multiple columns to be sorted at a time.
-         * @property {object} handlers - an object containing event callbacks : ["handleItemClick", "handleItemSelect"].
-         * @property {object} vDataTableProps - additional props to add to the vuetify component using v-bind.
-         */
-        tableOptions: {
-            type: Object,
-            default: () => ({
-                footerProps: {
-                    itemsPerPageOptions: [50, 100, 150, -1],
-                },
-                showSelect: false,
-                singleSelect: false,
-                mobileBreakpoint: 0,
-            }),
         },
     },
     computed: {
