@@ -99,7 +99,7 @@
                         v-for="(item, itemIndex) in items"
                         :key="itemIndex"
                         :class="getRowClass(item)"
-                        @click="handleClick(item)"
+                        @click="handleClick($event, item)"
                     >
                         <td
                             v-for="(header, headerIndex) in headers"
@@ -149,7 +149,7 @@
                             <span v-else-if="header.value === 'data-table-select'">
                                 <input
                                     type="checkbox"
-                                    @click.stop="handleClick(item)"
+                                    @click.stop="handleClick($event, item)"
                                     :checked="selectedItems && selectedItems[item[tableConfig.selectKey]] ? true : false"
                                 >
                             </span>
@@ -545,7 +545,7 @@ export default {
             return this.tableItems.map((item, index) => {
                 const itemDataType = typeof item;
                 const formattedItem = {
-                    id: index,
+                    index: index,
                 }
 
                  if (['string', 'number', 'boolean'].includes(itemDataType)) {
@@ -658,17 +658,46 @@ export default {
         },
     },
     methods: {
-        handleClick(item) {
+        handleClick(event, item) {
             if (this.tableConfig.selectable) {
-                if (this.selectedItems[item[this.tableConfig.selectKey]]) {
-                    delete this.selectedItems[item[this.tableConfig.selectKey]];
-                }
-                else  {
-                    this.selectedItems[item[this.tableConfig.selectKey]] = item;
-                }
+                // MULTISELECT
+                const newItems = { ...this.selectedItems };
 
-                if (typeof this.tableConfig.selectable == "function") {
-                    this.tableConfig.selectable(item, { ...this.selectedItems });
+                if (event.shiftKey && Object.keys(newItems).length > 0) {
+                    const end = item.index;
+                    const keys = Object.values(newItems).map(el => el.index).filter(el => el !== end);
+
+                    if (keys.length > 0) {
+                        const closest = (goal) => {
+                            return keys.reduce((prev, curr) => (Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev))
+                        };
+                        let start = closest(end);
+
+                        const selected = this.formattedTableItems.map(item => item.index).slice(
+                            Math.min(start, end),
+                            Math.max(start, end) + 1
+                        );
+                        selected.forEach((index) => {
+                            const row = this.formattedTableItems[index];
+                            if (!newItems[row[this.tableConfig.selectKey]]) {
+                                newItems[row[this.tableConfig.selectKey]] = row;
+                            }
+                        });
+                        this.tableConfig.selectable(null, newItems);
+                    }
+                }
+                else {
+                    // SINGLE SELECT
+                    if (newItems[item[this.tableConfig.selectKey]]) {
+                        delete newItems[item[this.tableConfig.selectKey]];
+                    }
+                    else  {
+                        newItems[item[this.tableConfig.selectKey]] = item;
+                    }
+
+                    if (typeof this.tableConfig.selectable == 'function') {
+                        this.tableConfig.selectable(item, newItems);
+                    }
                 }
             }
 
