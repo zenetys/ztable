@@ -24,12 +24,13 @@
             fixed-header
             :height="tableHeight"
             :disable-pagination="!tableConfig.paginated"
-            :hide-default-footer="!tableConfig.paginated"
+            :hide-default-footer="!tableConfig.paginated || tableConfig.hideFooter"
             :hide-default-header="true"
             :custom-sort="customSort"
             :loading="isLoading"
-            :options="{ sortBy, sortDesc }"
+            :options="{ sortBy, sortDesc, page }"
             :footer-props="tableConfig.footerProps"
+            @pagination="tableConfig.syncPagination"
             :mobile-breakpoint="tableConfig.mobileBreakpoint"
             :show-select="tableConfig.showSelect"
             v-bind="tableConfig.vDataTableProps"
@@ -472,6 +473,7 @@ const defaultConfig = {
     clickable: undefined,
     selectable: undefined,
     paginated: undefined,
+    hideFooter: false,
     heightOffsets: undefined,
     customHeadersComputation: undefined,
     dataReady: [],
@@ -485,6 +487,7 @@ const defaultConfig = {
         error: "An error has occurred!",
         noRender: "No render",
     },
+    syncPagination: (pagination) => {},
     mobileBreakpoint: 0,
     footerProps: { 'items-per-page-options': [50, 100, 150, -1] },
     showSelect: false,
@@ -526,6 +529,11 @@ export default {
         selectedItems: {
             type: Object,
             default: () => { return {} },
+        },
+
+        page: {
+            type: Number,
+            default: () => 1
         },
     },
     computed: {
