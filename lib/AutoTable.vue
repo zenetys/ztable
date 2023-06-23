@@ -342,6 +342,10 @@ tbody .v-data-table__divider span {
 .__column-options-button--offset-top {
     top: 0px;
 }
+
+input {
+    outline: none;
+}
 </style>
 
 <script>
