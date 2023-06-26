@@ -99,7 +99,7 @@
                         v-for="(item, itemIndex) in items"
                         :key="itemIndex"
                         :class="getRowClass(item)"
-                        @click="handleClick($event, item)"
+                        @click="onRowClick($event, item)"
                     >
                         <td
                             v-for="(header, headerIndex) in headers"
@@ -149,7 +149,7 @@
                             <span v-else-if="header.value === 'data-table-select'">
                                 <input
                                     type="checkbox"
-                                    @click.stop="handleClick($event, item)"
+                                    @click.stop="onRowClick($event, item)"
                                     :checked="selectedItems && selectedItems[item[tableConfig.selectKey]] ? true : false"
                                 >
                             </span>
@@ -1022,7 +1022,7 @@ export default {
 
         /* ROW CLICK / SELECT */
 
-        handleClick(event, item) {
+        onRowClick(event, item) {
             if (this.tableConfig.selectable) {
                 // MULTISELECT
                 const newItems = { ...this.selectedItems };
