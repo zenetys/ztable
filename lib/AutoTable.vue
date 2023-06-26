@@ -100,6 +100,7 @@
                         :key="itemIndex"
                         :class="getRowClass(item)"
                         @click="onRowClick($event, item)"
+                        @mousedown="onRowMouseDown($event)"
                     >
                         <td
                             v-for="(header, headerIndex) in headers"
@@ -1061,6 +1062,19 @@ export default {
                     this.tableConfig.clickable(item);
                 }
             }
+        },
+        /**
+         * Event handler trigger on mousedown on body rows.
+         * This event is only used to prevent user-select when selecting
+         * multiple rows, ie. when holding the shift key. It's an alternative
+         * to using CSS "user-select: none" with benefit that user manual text
+         * selection is still possible without hassle. It was tested
+         * successfully on Chrome and Firefox. It has been reported it does not
+         * work with legacy IE, which is fine.
+         */
+        onRowMouseDown(event) {
+            if (this.tableConfig.selectable && event.shiftKey)
+                event.preventDefault();
         },
 
         /* COLUMN MOVE / DRAG */
