@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/zenetys/ztable.git"
     },
-    "homepage": "https://github.com/Akryum/vue-cli-plugin-apollo#readme",
+    "homepage": "https://tools.zenetys.com/ztable/",
     "scripts": {
         "serve": "vue-cli-service serve",
         "lib": "vue-cli-service build --target lib --name z-table ./lib/index.js && npm pack",
