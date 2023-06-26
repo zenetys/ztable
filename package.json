@@ -13,12 +13,12 @@
     "homepage": "https://tools.zenetys.com/ztable/",
     "scripts": {
         "serve": "vue-cli-service serve",
-        "lib": "vue-cli-service build --target lib --name z-table ./lib/index.js && npm pack",
+        "lib": "vue-cli-service build --target lib --name ztable ./lib/index.js && npm pack",
         "build": "vue-cli-service build"
     },
-    "main": "dist/z-table.common.js",
-    "unpkg": "dist/z-table.umd.js",
-    "cdn": "dist/z-table.umd.min.js",
+    "main": "dist/ztable.common.js",
+    "unpkg": "dist/ztable.umd.js",
+    "cdn": "dist/ztable.umd.min.js",
     "files": [
         "dist",
         "lib",
