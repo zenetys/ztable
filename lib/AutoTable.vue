@@ -495,7 +495,7 @@ const defaultConfig = {
     mobileBreakpoint: 0,
     footerProps: { 'items-per-page-options': [50, 100, 150, -1] },
     showSelect: false,
-    selectKey: "index",
+    selectKey: 'id',
     vDataTableProps: undefined,
 };
 
@@ -542,11 +542,12 @@ export default {
     },
     computed: {
         formattedTableItems() {
+            /* reset tracking of last clicked item */
+            this.lastClickedItemIndex = undefined;
+
             return this.tableItems.map((item, index) => {
                 const itemDataType = typeof item;
-                const formattedItem = {
-                    index: index,
-                }
+                const formattedItem = {};
 
                  if (['string', 'number', 'boolean'].includes(itemDataType)) {
                      /* If the data is a simple value, transform the item into a readable object with
@@ -555,6 +556,12 @@ export default {
                 } else {
                     Object.assign(formattedItem, item );
                 }
+
+                /* default item-key, may be overriden by assign'ed data */
+                if (formattedItem.id === undefined)
+                    formattedItem.id = index;
+                /* always track array index in entries */
+                formattedItem.__index = index;
                 return formattedItem;
             });
         },
@@ -622,6 +629,7 @@ export default {
                 height: 'auto',
             },
             showIcons: false,
+            lastClickedItemIndex: undefined,
         };
     },
     watch: {
@@ -1024,45 +1032,28 @@ export default {
 
         onRowClick(event, item) {
             if (this.tableConfig.selectable) {
-                // MULTISELECT
                 const newItems = { ...this.selectedItems };
+                const newState = !newItems[item[this.tableConfig.selectKey]];
+                const index2 = item.__index;
+                const index1 = event.shiftKey && this.lastClickedItemIndex !== undefined
+                    ? this.lastClickedItemIndex : index2;
+                const selected = this.formattedTableItems.slice(
+                    Math.min(index1, index2),
+                    Math.max(index1, index2) + 1
+                );
 
-                if (event.shiftKey && Object.keys(newItems).length > 0) {
-                    const end = item.index;
-                    const keys = Object.values(newItems).map(el => el.index).filter(el => el !== end);
-
-                    if (keys.length > 0) {
-                        const closest = (goal) => {
-                            return keys.reduce((prev, curr) => (Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev))
-                        };
-                        let start = closest(end);
-
-                        const selected = this.formattedTableItems.map(item => item.index).slice(
-                            Math.min(start, end),
-                            Math.max(start, end) + 1
-                        );
-                        selected.forEach((index) => {
-                            const row = this.formattedTableItems[index];
-                            if (!newItems[row[this.tableConfig.selectKey]]) {
-                                newItems[row[this.tableConfig.selectKey]] = row;
-                            }
-                        });
-                        this.tableConfig.selectable(null, newItems);
-                    }
-                }
-                else {
-                    // SINGLE SELECT
-                    if (newItems[item[this.tableConfig.selectKey]]) {
-                        delete newItems[item[this.tableConfig.selectKey]];
-                    }
-                    else  {
+                selected.forEach((item) => {
+                    if (newState)
                         newItems[item[this.tableConfig.selectKey]] = item;
-                    }
+                    else
+                        delete newItems[item[this.tableConfig.selectKey]];
+                });
 
-                    if (typeof this.tableConfig.selectable == 'function') {
-                        this.tableConfig.selectable(item, newItems);
-                    }
+                if (typeof this.tableConfig.selectable == 'function') {
+                    this.tableConfig.selectable(item, newItems);
                 }
+
+                this.lastClickedItemIndex = item.__index;
             }
 
             if (this.tableConfig.clickable) {
