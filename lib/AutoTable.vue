@@ -658,55 +658,6 @@ export default {
         },
     },
     methods: {
-        handleClick(event, item) {
-            if (this.tableConfig.selectable) {
-                // MULTISELECT
-                const newItems = { ...this.selectedItems };
-
-                if (event.shiftKey && Object.keys(newItems).length > 0) {
-                    const end = item.index;
-                    const keys = Object.values(newItems).map(el => el.index).filter(el => el !== end);
-
-                    if (keys.length > 0) {
-                        const closest = (goal) => {
-                            return keys.reduce((prev, curr) => (Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev))
-                        };
-                        let start = closest(end);
-
-                        const selected = this.formattedTableItems.map(item => item.index).slice(
-                            Math.min(start, end),
-                            Math.max(start, end) + 1
-                        );
-                        selected.forEach((index) => {
-                            const row = this.formattedTableItems[index];
-                            if (!newItems[row[this.tableConfig.selectKey]]) {
-                                newItems[row[this.tableConfig.selectKey]] = row;
-                            }
-                        });
-                        this.tableConfig.selectable(null, newItems);
-                    }
-                }
-                else {
-                    // SINGLE SELECT
-                    if (newItems[item[this.tableConfig.selectKey]]) {
-                        delete newItems[item[this.tableConfig.selectKey]];
-                    }
-                    else  {
-                        newItems[item[this.tableConfig.selectKey]] = item;
-                    }
-
-                    if (typeof this.tableConfig.selectable == 'function') {
-                        this.tableConfig.selectable(item, newItems);
-                    }
-                }
-            }
-
-            if (this.tableConfig.clickable) {
-                if (typeof this.tableConfig.clickable == "function") {
-                    this.tableConfig.clickable(item);
-                }
-            }
-        },
         /**
          * Fetch data from an API and format it.
          */
@@ -1067,6 +1018,58 @@ export default {
             headers.sort((a, b) => a.order - b.order);
             this.headersByName = headersByName;
             this.headers = headers;
+        },
+
+        /* ROW CLICK / SELECT */
+
+        handleClick(event, item) {
+            if (this.tableConfig.selectable) {
+                // MULTISELECT
+                const newItems = { ...this.selectedItems };
+
+                if (event.shiftKey && Object.keys(newItems).length > 0) {
+                    const end = item.index;
+                    const keys = Object.values(newItems).map(el => el.index).filter(el => el !== end);
+
+                    if (keys.length > 0) {
+                        const closest = (goal) => {
+                            return keys.reduce((prev, curr) => (Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev))
+                        };
+                        let start = closest(end);
+
+                        const selected = this.formattedTableItems.map(item => item.index).slice(
+                            Math.min(start, end),
+                            Math.max(start, end) + 1
+                        );
+                        selected.forEach((index) => {
+                            const row = this.formattedTableItems[index];
+                            if (!newItems[row[this.tableConfig.selectKey]]) {
+                                newItems[row[this.tableConfig.selectKey]] = row;
+                            }
+                        });
+                        this.tableConfig.selectable(null, newItems);
+                    }
+                }
+                else {
+                    // SINGLE SELECT
+                    if (newItems[item[this.tableConfig.selectKey]]) {
+                        delete newItems[item[this.tableConfig.selectKey]];
+                    }
+                    else  {
+                        newItems[item[this.tableConfig.selectKey]] = item;
+                    }
+
+                    if (typeof this.tableConfig.selectable == 'function') {
+                        this.tableConfig.selectable(item, newItems);
+                    }
+                }
+            }
+
+            if (this.tableConfig.clickable) {
+                if (typeof this.tableConfig.clickable == "function") {
+                    this.tableConfig.clickable(item);
+                }
+            }
         },
 
         /* COLUMN MOVE / DRAG */
