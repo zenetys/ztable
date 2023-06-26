@@ -20,7 +20,6 @@
             :class="hasFixedWidths ? '' : 'sizable'"
             :item-class="tableConfig.itemClass"
             dense
-            item-key="tableConfig.id"
             fixed-header
             :height="tableHeight"
             :disable-pagination="!tableConfig.paginated"
