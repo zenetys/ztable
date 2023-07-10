@@ -850,6 +850,9 @@ export default {
                 console.debug('AutoTable: sortCol: Resize in progress, cancel event');
                 return;
             }
+            if (header.value === 'data-table-select') {
+                return;
+            }
             if (header.columnDefinition.sortable === false) {
                 return;
             }
