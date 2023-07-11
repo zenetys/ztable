@@ -546,16 +546,16 @@ export default {
             this.lastClickedItemIndex = undefined;
 
             return this.tableItems.map((item, index) => {
-                const itemDataType = typeof item;
                 const formattedItem = {};
 
-                if (itemDataType === 'string' || itemDataType === 'number' || itemDataType === 'boolean') {
+                /* Same condition as in extractHeadersFromData(), for consistency */
+                if (typeof item === 'object' && item !== null) {
+                    Object.assign(formattedItem, item);
+                }
+                else {
                     /* If the data is a simple value, transform the item into a readable object with
                      * a single value property, for the "value" header */
                     Object.assign(formattedItem, { value: item });
-                }
-                else {
-                    Object.assign(formattedItem, item );
                 }
 
                 /* default item-key, may be overriden by assign'ed data */
@@ -945,25 +945,23 @@ export default {
             let headers = [];
 
             if (this.tableItems.length > 0) {
-                const tableDataType = typeof this.tableItems[0];
-
-                if (tableDataType === 'string' || tableDataType === 'number' || tableDataType === 'boolean') {
-                    /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to
-                     * avoid decomposing the data and created buggy headers / no headers at all. */
-                    headers = [{ value: 'value' }];
-                    headersByName['value'] = headers[0];
-                }
-                else {
-                    // Store every unique header key
+                if (typeof this.tableItems[0] === 'object' && this.tableItems[0] !== null) {
+                    /* Store every unique header key */
                     tableItems.forEach((item) => {
                         for (const key in item) {
                             if (!headersByName[key]) {
                                 const header = { value: key };
-                                headersByName[key] = header;
                                 headers.push(header);
+                                headersByName[key] = header;
                             }
                         }
                     });
+                }
+                else {
+                    /* If the table is made of simple values as opposed to arrays or objects, set a single "value" header to
+                     * avoid decomposing the data and created buggy headers / no headers at all. */
+                    headers = [{ value: 'value' }];
+                    headersByName['value'] = headers[0];
                 }
             }
 
