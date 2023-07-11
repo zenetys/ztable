@@ -10,41 +10,46 @@
         "type": "git",
         "url": "https://github.com/zenetys/ztable.git"
     },
-    "homepage": "https://tools.zenetys.com/ztable/",
-    "scripts": {
-        "serve": "vue-cli-service serve",
-        "lib": "vue-cli-service build --target lib --name ztable ./lib/index.js && npm pack",
-        "build": "vue-cli-service build"
-    },
-    "main": "dist/ztable.common.js",
-    "unpkg": "dist/ztable.umd.js",
-    "cdn": "dist/ztable.umd.min.js",
+    "type": "module",
+    "main": "./dist/ztable.umd.cjs",
+    "module": "./dist/ztable.js",
     "files": [
         "dist",
         "lib",
         "LICENSE",
         "README.md"
     ],
-    "dependencies": {
-        "@mdi/font": "^5.9.55",
-        "axios": "^0.24.0",
-        "vue": "^2.6.11",
-        "vue-router": "^3.2.0",
-        "vue-uuid": "^2.1.0",
-        "vuetify": "^2.5.8"
+    "exports": {
+        ".": {
+            "import": "./dist/ztable.js",
+            "require": "./dist/ztable.umd.cjs"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "lib": "vite build -c vite.lib.config.js",
+        "preview": "vite preview"
     },
     "devDependencies": {
-        "@vue/cli-plugin-babel": "^5.0.8",
-        "@vue/cli-service": "^5.0.8",
-        "babel-eslint": "^10.1.0",
-        "css-loader": "^5.0.1",
-        "sass": "~1.32.0",
-        "sass-loader": "^10.0.0",
-        "vue-template-compiler": "^2.6.14"
+        "@rollup/plugin-alias": "^5.0.0",
+        "sass": "~1.32",
+        "vite": "^4.3.0",
+        "vite-plugin-libcss": "^1.1.1"
+    },
+    "dependencies": {
+        "@mdi/font": "^7.2.96",
+        "@vitejs/plugin-vue2": "^2.2.0",
+        "axios": "^0.24.0",
+        "material-design-icons": "^3.0.1",
+        "vue": "^2.7.0",
+        "vue-router": "^3.2.0",
+        "vue-uuid": "^2.1.0",
+        "vuetify": "^2.6.15"
     },
     "peerDependencies": {
         "axios": "^0.24.0",
-        "vue": "^2.6.11",
-        "vuetify": "^2.5.8"
+        "vue": "^2.7.0",
+        "vuetify": "^2.6.15"
     }
 }
