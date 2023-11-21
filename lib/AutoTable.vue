@@ -714,7 +714,13 @@ export default {
         },
         async loadConfig() {
             if (typeof this.$props.config == "object") {
-                this.tableConfig = Object.assign({}, defaultConfig, this.$props.config);
+                let config = Object.assign({}, defaultConfig, this.$props.config);
+                /* Handle stringified functions for itemClass */
+                if (config.itemClass && typeof config.itemClass === 'string' && config.itemClass.startsWith('{'))
+                    config.itemClass = eval('(item) => ' + config.itemClass);
+                
+                /* Handle stringified functions for columns */
+                this.tableConfig = this.parseConfigColumns(config);
                 console.debug('AutoTable: tableConfig =', this.tableConfig);
                 return;
             }
@@ -727,31 +733,43 @@ export default {
                 config = await this.fetchConfig(this.$props.config)
             else
                 config = JSON.parse(this.$props.config)
+            
+            /* Handle stringified functions for columns */
+            config = this.parseConfigColumns(config);
 
+            this.tableConfig = Object.assign({}, defaultConfig, config);
+            console.debug('AutoTable: tableConfig =', this.tableConfig);
+        },
+        /**
+         * Parse column config and handle stringified functions and events
+         * @param {object} cfg - The config object to parse
+         * @returns {object} - The parsed config object
+        */
+        parseConfigColumns(cfg) {
             const elements = [
                 'cssClass', 'cssStyle', 'formatText', 'formatHtml', 'tooltip',
                 'sortable', 'clickable', 'truncable', 'copyable', 'selectable'
             ];
 
-            Object.keys(config.columns).forEach((header) => {
-                const column = config.columns[header];
+            Object.keys(cfg.columns).forEach((header) => {
+                const column = cfg.columns[header];
                 Object.keys(column).forEach((key) => {
                     if (elements.includes(key)) {
-                        const text = column[key]
-                        let func = null
-                        if (text.startsWith('{'))
-                            func = eval('(value, item) => ' + text);
-                        else if (text.startsWith('@'))
-                            func = this[text.slice(1)];
-                        else
-                            func = () => text;
-                        column[key] = func;
+                        if (typeof column[key] === 'string') {
+                            const text = column[key]
+                            let func = null;
+                            if (text.startsWith('{'))
+                                func = eval('(value, item) => ' + text);
+                            else if (text.startsWith('@'))
+                                func = this[text.slice(1)];
+                            else
+                                func = () => text;
+                            column[key] = func;
+                        }
                     }
                 });
             });
-
-            this.tableConfig = Object.assign({}, defaultConfig, config);
-            console.debug('AutoTable: tableConfig =', this.tableConfig);
+            return cfg;
         },
         async fetchConfig(url) {
             const res = await axios(url);
