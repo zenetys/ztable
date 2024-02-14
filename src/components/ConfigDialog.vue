@@ -5,6 +5,7 @@
             persistent
             scrollable
             max-width="600px"
+            @keydown.esc="$store.showConfigDialog = false"
         >
             <v-card>
                 <v-card-title>
@@ -12,7 +13,7 @@
                 </v-card-title>
                 <v-card-text>
                     <div class="__config-section-container">
-                        <h2>Data Source</h2>
+                        <h3>Data Source</h3>
                         <v-tabs v-model="selectedTab">
                             <v-tabs-slider color="primary"></v-tabs-slider>
                             <v-tab>API</v-tab>
@@ -23,7 +24,7 @@
                         <v-tabs-items v-model="selectedTab">
                             <!-- API CONFIG TAB CONTENT -->
                             <v-tab-item>
-                                <v-row>
+                                <v-row no-gutters>
                                     <v-col cols="12">
                                         <v-text-field
                                             label="Data source URL *"
@@ -37,7 +38,7 @@
                             </v-tab-item>
                             <!-- FILE CONFIG TAB CONTENT -->
                             <v-tab-item>
-                                <v-row>
+                                <v-row no-gutters>
                                     <v-col cols="12">
                                         <v-file-input
                                             label="Data source file *"
@@ -50,8 +51,8 @@
                             </v-tab-item>
                             <!-- TEXT CONFIG TAB CONTENT -->
                             <v-tab-item>
-                                <v-row>
-                                    <v-col cols="12">
+                                <v-row no-gutters>
+                                    <v-col cols="12" no-gutters>
                                         <v-textarea
                                             class="__config-textarea"
                                             outlined
@@ -66,11 +67,9 @@
                             </v-tab-item>
                         </v-tabs-items>
                     </div>
-                    <br />
                     <div class="__config-section-container">
-                        <h2>Options</h2>
-                        <br />
-                        <v-row>
+                        <h3>Options</h3>
+                        <v-row no-gutters>
                             <v-col cols="12" sm="6">
                                 <v-text-field
                                     label="Data path (optional)"
@@ -90,7 +89,7 @@
                             </v-col>
                             <v-col cols="12">
                                 <v-text-field
-                                    label="Custom Config URL (optional)"
+                                    label="Custom config URL (optional)"
                                     v-model="customConfigUrl"
                                     hint="Source URL to a custom configuration file."
                                     :disabled="dataType !== 'generic'"
@@ -100,7 +99,7 @@
                         <small>*indicates required field</small>
                     </div>
                 </v-card-text>
-                <v-card-actions>
+                <v-card-actions class="mb-1">
                     <v-spacer></v-spacer>
                     <v-btn
                         text
@@ -263,10 +262,9 @@ export default {
 
 <style lang="scss">
 .__config-section-container {
-    h2 {
+    h3 {
         color: #1976d2;
         font-weight: 500;
-        text-align: center;
         margin-bottom: 1rem;
     }
     padding: 1rem;
