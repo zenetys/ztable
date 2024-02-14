@@ -1,6 +1,11 @@
 <template>
     <v-row justify="center">
-        <v-dialog v-model="$store.showConfigDialog" persistent scrollable max-width="600px">
+        <v-dialog
+            v-model="$store.showConfigDialog"
+            persistent
+            scrollable
+            max-width="600px"
+        >
             <v-card>
                 <v-card-title>
                     <span class="text-h5">Configuration</span>
@@ -97,10 +102,16 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn text :disabled="!DataManager.tableData && !DataManager.objectData" @click="cancelDialogForm"
-                        >Cancel</v-btn
-                    >
-                    <v-btn color="primary" @click="submitDialogData" :disabled="computedSourceIsEmpty">Save</v-btn>
+                    <v-btn
+                        text
+                        :disabled="!DataManager.tableData && !DataManager.objectData"
+                        @click="cancelDialogForm"
+                    >Cancel</v-btn>
+                    <v-btn
+                        color="primary"
+                        @click="submitDialogData"
+                        :disabled="computedSourceIsEmpty"
+                    >Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
