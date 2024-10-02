@@ -419,46 +419,87 @@ function formatDataSourceFile(item) {
     }
 }
 ```
+<br>
 
-<!-- ### Usage via CDN
+# Usage via CDN
+In this section you will find information related to the usage of the AutoTable component as a standalone complete library that you can inject in any HTML file or template.
 
-Copy the code below in your `index.html` file.
+## Requirements
+In order to operate on its own, the AutoTable requires a few stylesheets and JS tools : 
+
+### CSS
+-  A Google font named 'Roboto'
+-  Material Design Icons
+-  Vuetify 2's stylesheet
+-  Ztable's CSS
+
+### JavaScript
+- Vue 2
+- Axios (for fetching data or configs from remote URLs)
+- Vuetify 2
+- Ztable
+
+Then, all you need is a small JS script in order to create a Vue instance, link the AutoTable component to it and set your table configuration.
+<br>
+
+## Example
+
+Here's a basic snippet you can put in your HTML file or template :
 
 ```html
 <!DOCTYPE html>
 <html>
     <head>
+        <!-- CSS REQUIREMENTS -->
+        <!-- Roboto font -->
         <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
-        <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet" />
-        <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui"
-        />
+        <!-- Material Design icons -->
+        <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet" />
+        <!-- Vuetify CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/vuetify@2.7.2/dist/vuetify.min.css" rel="stylesheet" />
+        <!-- Ztable CSS -->
+        <link href="https://unpkg.com/@zenetys/ztable@2.x/dist/style.css" rel="stylesheet" />
     </head>
+
     <body>
-        <div id="mytable">
-            <v-app>
-                <v-main>
-                    <AutoTable :config="config"></AutoTable>
-                </v-main>
-            </v-app>
+        <!-- JS REQUIREMENTS -->
+        <!-- Vue 2 -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+        <!-- Axios, for fetching remote URLs -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+        <!-- Vuetify -->
+        <script src="https://unpkg.com/vuetify@2.7.2/dist/vuetify.min.js"></script>
+        <!-- Ztable -->
+        <script src="https://unpkg.com/@zenetys/ztable@2.x/dist/ztable.umd.cjs"></script>
+
+        <div id="auto-table-container">
+            <auto-table :config="config" />
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@zenetys/ztable@0.1.25/dist/z-table.umd.js"></script>
         <script>
+            const autoTable = window['@zenetys/ztable'];
+
             new Vue({
-                el: '#mytable',
+                el: '#auto-table-container',
                 vuetify: new Vuetify(),
+                components: {
+                    'auto-table': autoTable,
+                },
+                data: {
+                    /** Basic config : 
+                     * The source of your data here is 'api' property, set to a remote URL
+                     * The path where to find the table data in the data array 
+                     * */
+                    config: { path: 'data', api: 'https://cdn.zenetys.com/api/v1/data.gouv.navitia.json' },
+                },
             });
         </script>
     </body>
 </html>
 ````
+<br>
 
-### Build for lirary
+# Build for library
 
 `npm run lib`
 
@@ -480,4 +521,4 @@ Then you can install it
 
 or
 
-` yarn add file:<path of the package>` -->
+` yarn add file:<path of the package>`

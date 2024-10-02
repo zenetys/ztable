@@ -179,6 +179,11 @@
 <style scoped lang="scss">
 /* XXX Style needs review and cleanup! At the moment, it is too difficult
  * XXX to override table style without using !important. */
+
+* {
+    font-family: Roboto, sans-serif;
+}
+
 .resizeElement {
     content: '';
     cursor: ew-resize;
@@ -481,7 +486,7 @@ const defaultConfig = {
     heightOffsets: undefined,
     customHeadersComputation: undefined,
     dataReady: [],
-    columns: undefined,
+    columns: {},
     path: '',
     api: null,
     text: {
