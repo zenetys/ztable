@@ -466,7 +466,7 @@ Here's a basic snippet you can put in your HTML file or template :
         <!-- Vue 2 -->
         <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
         <!-- Axios, for fetching remote URLs -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.28.0/axios.min.js"></script>
         <!-- Vuetify -->
         <script src="https://unpkg.com/vuetify@2.7.2/dist/vuetify.min.js"></script>
         <!-- Ztable -->
