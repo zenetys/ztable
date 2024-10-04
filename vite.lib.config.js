@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue2';
 
 import alias from '@rollup/plugin-alias'
+import commonjs from '@rollup/plugin-commonjs'; // Convert CommonJS modules to ES6
+import buble from '@rollup/plugin-buble'; // Transpile/polyfill with reasonable browser support
 import { resolve } from 'path'
 
 import libCss from 'vite-plugin-libcss';
@@ -39,6 +41,9 @@ export default defineConfig({
                     vuetify: 'vuetify'
                 }
             },
+            plugins: [
+                commonjs(),
+            ],
         }
     }
 });

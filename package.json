@@ -34,7 +34,10 @@
         "@rollup/plugin-alias": "^5.0.0",
         "sass": "~1.32",
         "vite": "^4.3.0",
-        "vite-plugin-libcss": "^1.1.1"
+        "vite-plugin-libcss": "^1.1.1",
+        "@rollup/plugin-buble": "^0.21.3",
+        "@rollup/plugin-commonjs": "^11.1.0",
+        "vue-template-compiler": "^2.6.10"
     },
     "dependencies": {
         "@mdi/font": "^7.2.96",

@@ -437,9 +437,12 @@ In order to operate on its own, the AutoTable requires a few stylesheets and JS 
 - Vue 2
 - Axios (for fetching data or configs from remote URLs)
 - Vuetify 2
-- Ztable
+- Ztable<br>
 
-Then, all you need is a small JS script in order to create a Vue instance, link the AutoTable component to it and set your table configuration.
+Ztable's plugin will auto-install as soon as Vue is detected and the component will then be readily available.
+<br>
+<br>
+Then, all you need is a small JS script in order to create a Vue instance and set your table configuration.
 <br>
 
 ## Example
@@ -477,14 +480,9 @@ Here's a basic snippet you can put in your HTML file or template :
         </div>
 
         <script>
-            const autoTable = window['@zenetys/ztable'];
-
             new Vue({
                 el: '#auto-table-container',
                 vuetify: new Vuetify(),
-                components: {
-                    'auto-table': autoTable,
-                },
                 data: {
                     /** Basic config : 
                      * The source of your data here is 'api' property, set to a remote URL
