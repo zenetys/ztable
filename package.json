@@ -10,9 +10,8 @@
         "type": "git",
         "url": "https://github.com/zenetys/ztable.git"
     },
-    "type": "module",
-    "main": "./dist/ztable.umd.cjs",
-    "module": "./dist/ztable.js",
+    "main": "./dist/ztable.umd.js",
+    "module": "./dist/ztable.cjs",
     "files": [
         "dist",
         "lib",
@@ -21,8 +20,8 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/ztable.js",
-            "require": "./dist/ztable.umd.cjs"
+            "import": "./dist/ztable.cjs",
+            "require": "./dist/ztable.umd.js"
         }
     },
     "scripts": {
