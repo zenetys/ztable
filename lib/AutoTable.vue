@@ -98,7 +98,7 @@
                         v-for="(item, itemIndex) in items"
                         :key="itemIndex"
                         :class="getRowClass(item)"
-                        @click="onRowClick($event, item)"
+                        @click="onRowClick($event, item, items)"
                         @mousedown="onRowMouseDown($event)"
                     >
                         <td
@@ -149,7 +149,7 @@
                             <span v-else-if="header.value === 'data-table-select'">
                                 <input
                                     type="checkbox"
-                                    @click.stop="onRowClick($event, item)"
+                                    @click.stop="onRowClick($event, item, items)"
                                     :checked="selectedItems && selectedItems[item[tableConfig.selectKey]] ? true : false"
                                 >
                             </span>
@@ -548,7 +548,7 @@ export default {
     computed: {
         formattedTableItems() {
             /* reset tracking of last clicked item */
-            this.lastClickedItemIndex = undefined;
+            this.lastClickedKey = undefined;
 
             return this.tableItems.map((item, index) => {
                 const formattedItem = {};
@@ -635,7 +635,7 @@ export default {
                 height: 'auto',
             },
             showIcons: false,
-            lastClickedItemIndex: undefined,
+            lastClickedKey: undefined,
         };
     },
     watch: {
@@ -1056,30 +1056,41 @@ export default {
 
         /* ROW CLICK / SELECT */
 
-        onRowClick(event, item) {
+        onRowClick(event, item, items) {
             if (this.tableConfig.selectable) {
+                const key = this.tableConfig.selectKey;
                 const newItems = { ...this.selectedItems };
-                const newState = !newItems[item[this.tableConfig.selectKey]];
-                const index2 = item.__index;
-                const index1 = event.shiftKey && this.lastClickedItemIndex !== undefined
-                    ? this.lastClickedItemIndex : index2;
-                const selected = this.formattedTableItems.slice(
+                const newState = !newItems[item[key]];
+                /* Range selection works on the displayed items (filtered,
+                 * sorted, current page). The last clicked item is tracked
+                 * by key, so a shift+click after a sort or a page change
+                 * does not reuse a stale index: if the last clicked item is
+                 * not displayed anymore, act as a simple click. */
+                const displayed = items || this.formattedTableItems;
+                const index2 = displayed.findIndex((i) => i[key] === item[key]);
+                let index1 = index2;
+                if (event.shiftKey && this.lastClickedKey !== undefined) {
+                    const found = displayed.findIndex((i) => i[key] === this.lastClickedKey);
+                    if (found !== -1)
+                        index1 = found;
+                }
+                const selected = index2 === -1 ? [item] : displayed.slice(
                     Math.min(index1, index2),
                     Math.max(index1, index2) + 1
                 );
 
                 selected.forEach((item) => {
                     if (newState)
-                        newItems[item[this.tableConfig.selectKey]] = item;
+                        newItems[item[key]] = item;
                     else
-                        delete newItems[item[this.tableConfig.selectKey]];
+                        delete newItems[item[key]];
                 });
 
                 if (typeof this.tableConfig.selectable == 'function') {
                     this.tableConfig.selectable(item, newItems);
                 }
 
-                this.lastClickedItemIndex = item.__index;
+                this.lastClickedKey = item[key];
             }
 
             if (this.tableConfig.clickable) {
