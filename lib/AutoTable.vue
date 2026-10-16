@@ -922,28 +922,23 @@ export default {
         },
         exportToCsv(data) {
             const csv = [];
-            data.forEach((item, i) => {
-                const line = [];
-                this.headers.forEach(header => {
-                    let content = " ";
-
-                    content = (i != 0) ? header.columnDefinition.formatText(item[header.value], item) : header.value;
-
-                    if (header.columnDefinition.enabled === false) {
-                        return;
+            const enabledHeaders = this.headers.filter(header => header.columnDefinition.enabled !== false);
+            const escape = (content) => {
+                if (typeof content === 'string' && (content.includes('"') || content.includes(','))) {
+                    if (content.includes('"')) {
+                        content = content.replaceAll('"', '""');
                     }
+                    content = '"' + content + '"';
+                }
+                return content;
+            };
 
-                    if (typeof content === 'string' && (content.includes('"') || content.includes(','))) {
-                        if (content.includes('"')) {
-                            content = content.replaceAll('"', '""');
-                        }
-                        content = '"' + content + '"';
-                    }
-
-                    line.push(content);
-                })
-                const str = line.join(",");
-                csv.push(str);
+            /* header line first, then one line per item */
+            csv.push(enabledHeaders.map(header => escape(header.value)).join(","));
+            data.forEach(item => {
+                const line = enabledHeaders.map(header =>
+                    escape(header.columnDefinition.formatText(item[header.value], item)));
+                csv.push(line.join(","));
             });
             const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
 
