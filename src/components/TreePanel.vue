@@ -34,6 +34,9 @@
 <script>
 import { generateUrlFromPath } from '@/plugins/utils';
 
+/* Last tree node id, incremented so that ids are never reused */
+let nextNodeId = 0;
+
 export default {
     name: 'tree-panel',
     props: {
@@ -132,7 +135,7 @@ export default {
                             /* Set icon depending on data type */
                             const icon = Array.isArray(data) ? 'mdi-code-array' : 'mdi-code-json';
                             /* Set unique ID */
-                            const id = this.$uuid.v4();
+                            const id = ++nextNodeId;
                             /* Compute the path of the current item */
                             const itemPath = parentPath ? parentPath + '.' + index : String(index);
                             /* Generate the URL from the path */
@@ -155,7 +158,7 @@ export default {
                             /* Set icon depending on data type */
                             const icon = Array.isArray(dataSet[key]) ? 'mdi-code-array' : 'mdi-code-json';
                             /* Set unique ID */
-                            const id = this.$uuid.v4();
+                            const id = ++nextNodeId;
                             /* Compute the path of the current item */
                             const itemPath = parentPath ? parentPath + '.' + key : String(key);
                             /* Generate the URL from the path */
