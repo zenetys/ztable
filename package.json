@@ -29,6 +29,7 @@
         "dev": "vite",
         "build": "vite build",
         "lib": "vite build -c vite.lib.config.js",
+        "prepack": "npm run lib",
         "preview": "vite preview"
     },
     "devDependencies": {
