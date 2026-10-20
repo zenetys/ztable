@@ -469,7 +469,7 @@ Here's a basic snippet you can put in your HTML file or template :
         <!-- Vue 2 -->
         <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
         <!-- Axios, for fetching remote URLs -->
-        <script src="https://cdn.jsdelivr.net/npm/axios@0.28.0/dist/axios.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/axios@0.34.0/dist/axios.min.js"></script>
         <!-- Vuetify -->
         <script src="https://unpkg.com/vuetify@2.7.2/dist/vuetify.min.js"></script>
         <!-- Ztable -->
@@ -498,6 +498,8 @@ Here's a basic snippet you can put in your HTML file or template :
 <br>
 
 # Build for library
+
+Requires Node.js 20.19+ or 22.12+ (Vite 7), also needed by the development server.
 
 `npm run lib`
 
